@@ -11,6 +11,9 @@ Small, simple features do not require the full multi-agent pipeline — see [Whe
 ## Workflow Lifecycle at a Glance
 
 ```
+0. Spec & Catalog Registration ──► pnpm index:sync ──► pnpm index:verify
+   (FDS, Behavior, Visuals/Figma)                               │
+                                                                ▼
 1. Plan: Frontend Fragment ══╗
                               ║  run in parallel
    Plan: Backend Fragment  ══╝
@@ -79,6 +82,119 @@ Every agent appends one line to `features/[[FEATURE]]/plans/activity-log.md` upo
 `- <Phase Name> | <YYYY-MM-DD HH:mm> | files touched: <paths> | result: <done / failed / notes>`
 
 For phases that use base prompts (Integration, Validation), add the log entry manually before committing.
+
+---
+
+## Phase 0: Specification Definition & Catalog Registration
+
+Before invoking any AI planning agent, the developer establishes the source of truth for the feature by authoring its specifications and registering it in the project catalog.
+
+### 1. Author Feature Specifications
+
+Create the feature directory under `features/[[FEATURE]]/`:
+
+- **Feature Design Specification (`features/[[FEATURE]]/fds.md`)**:
+  Must include standard YAML frontmatter, functional requirements, validation rules, data model, and acceptance criteria:
+
+  ```markdown
+  ---
+  id: [[FEATURE]]
+  version: 1.0.0
+  status: draft
+  changelog:
+    - version: 1.0.0
+      date: YYYY-MM-DD
+      changes: "Initial draft of [[FEATURE]] specification"
+  ---
+
+  # Feature Design Specification: [[FEATURE]]
+
+  ## Description
+
+  ...
+
+  ## Functional Requirements
+
+  - REQ-[[PREFIX]]-01: ...
+  - REQ-[[PREFIX]]-02: ...
+
+  ## Validation Rules
+
+  1. Field constraints (types, min/max lengths, regex, positive numbers)...
+
+  ## Data Model
+
+  | Field | Type        | Required | Description |
+  | :---- | :---------- | :------- | :---------- |
+  | id    | UUID/string | Yes      | Primary key |
+
+  ## Acceptance Criteria
+
+  - [ ] Criteria 1...
+  ```
+
+- **Behavioral Specification (`features/[[FEATURE]]/behavior.md`)**:
+  Documents user interactions and edge states:
+  - Form submission, cancellation, and validation UX (inline error states).
+  - Empty states (with CTA) and loading states (skeleton loaders, mutation spinners).
+  - Toast notifications for success and failure.
+  - Confirmation dialogs for destructive actions (e.g. deletion).
+
+- **Visual & Design Specifications (`features/[[FEATURE]]/visuals/`)**:
+  - `features/[[FEATURE]]/visuals/figma.md`: Layout dimensions, spacing, grid, color tokens, typography, and component states.
+  - UI assets: Screenshots, wireframes, or mockup diagrams (e.g. `features/[[FEATURE]]/visuals/[[FEATURE]].png`).
+
+---
+
+### 2. Register Feature in `features/index.json`
+
+Add the feature entry under `active_features` in `features/index.json`:
+
+```json
+"[[FEATURE]]": {
+  "id": "[[FEATURE]]",
+  "title": "Feature Title",
+  "domain": "finance",
+  "status": "active",
+  "version": "1.0.0",
+  "path": "features/[[FEATURE]]/fds.md",
+  "behavior_spec": "features/[[FEATURE]]/behavior.md",
+  "figma_spec": "features/[[FEATURE]]/visuals/figma.md",
+  "visual_spec": [
+    "features/[[FEATURE]]/visuals/[[FEATURE]].png"
+  ],
+  "owner": "feature-team",
+  "dependencies": []
+}
+```
+
+---
+
+### 3. Run Index Automation Scripts
+
+Run the index scripts to update metrics and verify that all specifications are completely consistent:
+
+```bash
+# 1. Recalculates total, active, and archived counts and updates features/index.json
+pnpm index:sync
+
+# 2. Validates that all files exist on disk, versions match the FDS frontmatter, and references are consistent
+pnpm index:verify
+```
+
+> [!IMPORTANT]
+> `pnpm index:verify` must exit with `0` (clean) before you proceed to Phase 1. If any missing files, version mismatches, or invalid dependencies are reported, fix them first.
+
+---
+
+### 4. Commit Feature Specifications
+
+Once verification passes, commit the specifications:
+
+```bash
+git add features/[[FEATURE]]/ features/index.json
+git commit -m "docs([[FEATURE]]): add feature specifications and register in catalog"
+```
 
 ---
 

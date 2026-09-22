@@ -10,20 +10,21 @@ Detailed operations are documented in [WORKFLOW_PLAYBOOK.md](file:///home/sujal/
 
 ### Multi-Agent Pipeline (Default for Medium & High Complexity)
 
-| Phase                              | When                             | System Prompt / Action                                                                                             |
-| :--------------------------------- | :------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
-| **1 — Plan Fragments (Parallel)**  | Before any code is written       | `.ai/prompts/plan/plan-fe.md` (Frontend)<br>`.ai/prompts/plan/plan-be.md` (Backend)                                |
-| **2 — Plan Synthesizer**           | After both fragments exist       | `.ai/prompts/plan/plan-synthesizer.md`                                                                             |
-| **3 — Plan Review**                | Before developer approval        | `.ai/prompts/plan/plan-review.md`                                                                                  |
-| **4 — Developer Approval Gate**    | After plan review passes         | Human reviews & freezes `plan-v<version>.md` and `contract-v<version>.md`                                          |
-| **5 — Build Mode (Parallel)**      | After approval gate              | `.ai/prompts/build/build-mode-frontend.md` (Frontend)<br>`.ai/prompts/build/build-mode-backend.md` (Backend)       |
-| **6 — UI Review & Freeze**         | After frontend build completes   | Human confirms UI against visual specs; freezes UI                                                                 |
-| **7 — Integration Build Mode**     | After both build sessions commit | `.ai/prompts/build-mode.md` with `Phase = Integration`                                                             |
-| **7b — Code Validation 1**         | After integration commits        | SonarQube Static Analysis Gate (no coverage threshold)                                                             |
-| **8 — Test Build Mode (Parallel)** | Post-integration spec tests      | `.ai/prompts/test/test-build-mode-unit-api.md` (Unit/API)<br>`.ai/prompts/test/test-build-mode-ui-e2e.md` (UI/E2E) |
-| **8b — Diagnosis & Fix Loop**      | On unresolved test/gate failures | `.ai/prompts/diagnosis/diagnosis-mode.md` (routes to Dev Agents in Fix Mode)                                       |
-| **8c — Code Validation 2**         | After tests pass                 | SonarQube Full Quality Gate (static analysis + coverage target)                                                    |
-| **9 — Validation Mode**            | Final compliance audit           | `.ai/prompts/validation-prompt.md`                                                                                 |
+| Phase                               | When                             | System Prompt / Action                                                                                             |
+| :---------------------------------- | :------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| **0 — Spec & Catalog Registration** | Before planning begins           | Author FDS, behavior, visual specs; run `pnpm index:sync` & `pnpm index:verify`                                    |
+| **1 — Plan Fragments (Parallel)**   | Before any code is written       | `.ai/prompts/plan/plan-fe.md` (Frontend)<br>`.ai/prompts/plan/plan-be.md` (Backend)                                |
+| **2 — Plan Synthesizer**            | After both fragments exist       | `.ai/prompts/plan/plan-synthesizer.md`                                                                             |
+| **3 — Plan Review**                 | Before developer approval        | `.ai/prompts/plan/plan-review.md`                                                                                  |
+| **4 — Developer Approval Gate**     | After plan review passes         | Human reviews & freezes `plan-v<version>.md` and `contract-v<version>.md`                                          |
+| **5 — Build Mode (Parallel)**       | After approval gate              | `.ai/prompts/build/build-mode-frontend.md` (Frontend)<br>`.ai/prompts/build/build-mode-backend.md` (Backend)       |
+| **6 — UI Review & Freeze**          | After frontend build completes   | Human confirms UI against visual specs; freezes UI                                                                 |
+| **7 — Integration Build Mode**      | After both build sessions commit | `.ai/prompts/build-mode.md` with `Phase = Integration`                                                             |
+| **7b — Code Validation 1**          | After integration commits        | SonarQube Static Analysis Gate (no coverage threshold)                                                             |
+| **8 — Test Build Mode (Parallel)**  | Post-integration spec tests      | `.ai/prompts/test/test-build-mode-unit-api.md` (Unit/API)<br>`.ai/prompts/test/test-build-mode-ui-e2e.md` (UI/E2E) |
+| **8b — Diagnosis & Fix Loop**       | On unresolved test/gate failures | `.ai/prompts/diagnosis/diagnosis-mode.md` (routes to Dev Agents in Fix Mode)                                       |
+| **8c — Code Validation 2**          | After tests pass                 | SonarQube Full Quality Gate (static analysis + coverage target)                                                    |
+| **9 — Validation Mode**             | Final compliance audit           | `.ai/prompts/validation-prompt.md`                                                                                 |
 
 ### Simple / Sequential Baseline Prompts (Low Complexity)
 
