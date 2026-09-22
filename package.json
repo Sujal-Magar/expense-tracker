@@ -11,7 +11,7 @@
     "build": "pnpm -r build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "index:sync": "node --experimental-strip-types scripts/sync-feature-index.ts",
+    "index:sync": "node --experimental-strip-types scripts/sync-feature-index.ts && prettier --write features/index.json",
     "index:verify": "node --experimental-strip-types scripts/verify-feature-index.ts",
     "sonar:fetch": "node --experimental-strip-types scripts/sonar-fetch.ts"
   },
