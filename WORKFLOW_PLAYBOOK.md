@@ -12,10 +12,10 @@ Small, simple features do not require the full multi-agent pipeline — see [Whe
 
 ```
 0. Spec & Catalog Registration ──► pnpm index:sync ──► pnpm index:verify
-   (FDS, Behavior, Visuals/Figma)                               │
+   (FDS, Behavior, Visuals)                                     │
                                                                 ▼
 1. Plan: Frontend Fragment ══╗
-                              ║  run in parallel
+                              ║  run in parallel (or single-agent plan-mode.md)
    Plan: Backend Fragment  ══╝
                 │
                 ▼
@@ -27,19 +27,17 @@ Small, simple features do not require the full multi-agent pipeline — see [Whe
                 ▼
 4. Developer Approval Gate  (Commit Plan + Contract)
                 │            freezes: FDS, behavior, visual specs, plan, contract-v[[VERSION]].md
-                │            neither agent below may edit contract-v[[VERSION]].md
                 │
-    ┌───────────┴────────────┐
-    ▼                        ▼
-5. Frontend Build        Backend Build         (run in parallel, each its own commit)
-    │                        │  (generates @expense-tracker/contracts
-    │                        │   from contract-v[[VERSION]].md first, if required)
-    ▼                        │
-6. UI Review & Freeze        │        (can happen as soon as Frontend commits — frontend
-    │                        │         still runs against mocks, independent of Backend)
-    └───────────┬────────────┘
                 ▼
-7. Integration Build  (Commit Integration)
+5. Build Mode (.ai/prompts/build-mode.md)
+   • Parallel Execution: Phase = Both (Session A: Frontend || Session B: Backend)
+   • Pragmatic Choice (Low Tokens): Phase = Frontend or Phase = Backend individually
+                │
+                ▼
+6. UI Review & Freeze  (Verify visual design against visuals/ and freeze UI)
+                │
+                ▼
+7. Integration Build Mode (.ai/prompts/build-mode.md with Phase = Integration)
                 │
                 ▼
    7b. Code Validation 1 — SonarQube Static Gate + Fix Loop
@@ -47,19 +45,20 @@ Small, simple features do not require the full multi-agent pipeline — see [Whe
     ┌───────────┴────────────┐
     ▼                        ▼
 8. Unit/API Test        UI/End-to-End Test     (run in parallel)
+   (.ai/prompts/test/)   (.ai/prompts/test/)
     │                        │
     └───────────┬────────────┘
                 ▼
        (Commit Tests & Fixes)
                 │
                 ▼
-   8b. Diagnosis & Fix Loop (If Testing or Validation Finds Unresolved Failures)
+   8b. Diagnosis & Fix Loop (.ai/prompts/diagnosis/diagnosis-mode.md)
                 │
                 ▼
    8c. Code Validation 2 — SonarQube Full Gate + Fix Loop
                 │
                 ▼
-9. Validation Mode  (Commit Validation Report)
+9. Validation Mode (.ai/prompts/validation-prompt.md)
 ```
 
 ---
@@ -130,7 +129,7 @@ Create the feature directory under `features/[[FEATURE]]/`:
 
   ## Acceptance Criteria
 
-  - [ ] Criteria 1...
+  - Criteria 1...
   ```
 
 - **Behavioral Specification (`features/[[FEATURE]]/behavior.md`)**:
@@ -300,42 +299,51 @@ All specifications (`fds.md`, `behavior.md`, `visuals/`, `plan-v[[VERSION]].md`,
 
 ---
 
-## Phase 5: Frontend Build and Backend Build — Parallel Execution
+## Phase 5: Build Mode — Frontend & Backend Execution
 
-Because `contract-v[[VERSION]].md` is frozen, Frontend and Backend agents build in parallel without waiting on each other.
+Because `contract-v[[VERSION]].md` is frozen at the Approval Gate, data consistency across layers is strictly defined. Frontend and Backend can be executed in parallel using `.ai/prompts/build-mode.md`.
 
-### Session A — Frontend Build
+### Multi-Agent Parallel Execution: `Phase = Both`
+
+When `Phase = Both` is provided, the prompt instructs the AI agent to employ a multi-agent pattern and roll up two parallel subagents:
 
 - **System Prompt**:
   ```text
-  Read the file .ai/prompts/build/build-mode-frontend.md and follow it exactly. That is your system prompt.
+  Read the file .ai/prompts/build-mode.md and follow it exactly. That is your system prompt.
   ```
 - **User Message**:
   ```text
   Feature ID = expense-crud
+  Phase = Both
   ```
 
-### Session B — Backend Build
+#### Subagents Rolled Up:
 
-Concurrently, in a separate session:
+1. **Frontend Subagent**: Scoped strictly to `frontend/`. Implements UI components against mock data shaped to match `contract-v[[VERSION]].md`.
+2. **Backend Subagent**: Scoped strictly to `backend/` and `packages/contracts/`. Generates typed contracts from `contract-v[[VERSION]].md` and implements schemas, services, repositories, and routes in `backend/`.
 
-- **System Prompt**:
-  ```text
-  Read the file .ai/prompts/build/build-mode-backend.md and follow it exactly. That is your system prompt.
-  ```
-- **User Message**:
-  ```text
-  Feature ID = expense-crud
-  ```
+_Data consistency across both subagents is strictly governed by the frozen `contract-v[[VERSION]].md` spec._
+
+---
+
+### Developer's Pragmatic Choice: Individual Layer Run (When Session Tokens Are Low)
+
+The developer makes the pragmatic decision prior to invoking the AI: if remaining session tokens are low, or if the developer prefers to stage implementation incrementally, they pass `Phase = Frontend` or `Phase = Backend` individually to run a single focused agent without spawning subagents:
+
+1. **Turn 1 — Frontend**: Run `.ai/prompts/build-mode.md` with `Phase = Frontend`. The agent focuses strictly on UI components and mock data without burning tokens on backend files.
+2. **Phase 6 — UI Review & Freeze**: Verify visual styling against `visuals/` and commit `frontend/`.
+3. **Turn 2 — Backend**: Run `.ai/prompts/build-mode.md` with `Phase = Backend`. The agent focuses strictly on contracts, Drizzle schemas, repositories, and Express routes.
+
+---
 
 ### What Happens:
 
-- **Frontend Agent**: Builds UI components against mock data shaped to match `contract-v[[VERSION]].md`. Writes strictly to `frontend/`.
-- **Backend Agent**: Generates/updates ts-rest contract definitions under `packages/contracts/` from `contract-v[[VERSION]].md`, then implements Drizzle schemas, repositories, services, and Express routes. Writes strictly to `backend/` and `packages/contracts/`.
+- **Frontend tasks**: Builds UI components against mock data shaped to match `contract-v[[VERSION]].md`. Writes strictly to `frontend/`.
+- **Backend tasks**: Generates/updates ts-rest contract definitions under `packages/contracts/` from `contract-v[[VERSION]].md`, then implements Drizzle schemas, repositories, services, and Express routes. Writes strictly to `backend/` and `packages/contracts/`.
 
 ### Commits:
 
-Each session commits independently upon completion:
+Each phase/session commits cleanly:
 
 ```bash
 # Frontend (once finished and UI Review in Phase 6 is complete):
@@ -361,7 +369,7 @@ Can be executed as soon as Frontend Build is complete, without waiting for Backe
 
 1. Start frontend dev server (`pnpm --filter @expense-tracker/frontend dev`) and inspect the feature pages.
 2. Verify visual styling, responsive design, modals, form states, and empty states against visual specs.
-3. Once verified, freeze UI and complete the Frontend commit shown in Phase 5.
+3. Once verified, freeze UI and complete the Frontend commit shown above.
 
 ---
 
@@ -458,7 +466,7 @@ git commit -m "test(expense-crud): test build complete (unit/API + UI/E2E, paral
 
 If Phase 8 reports failures that cannot be resolved within the test agents' bounded retries, or if cross-boundary defects are surfaced:
 
-### Claude Code Prompt:
+### Step 1: Run Diagnosis Agent
 
 - **System Prompt**:
   ```text
@@ -469,39 +477,103 @@ If Phase 8 reports failures that cannot be resolved within the test agents' boun
   Feature ID = expense-crud
   ```
 
-### What Happens:
-
 Produces `features/expense-crud/plans/plan-v[[VERSION]]-diagnosis.md`, classifying each failure into one of six categories with concrete Suggested Next Steps:
 
-| Category                      | Routing & Action                                                                               |
-| :---------------------------- | :--------------------------------------------------------------------------------------------- |
-| **Backend defect**            | Run `.ai/prompts/build/build-mode-backend.md` in **Fix Mode**                                  |
-| **Frontend defect**           | Run `.ai/prompts/build/build-mode-frontend.md` in **Fix Mode**                                 |
-| **Integration-wiring defect** | Re-run `.ai/prompts/build-mode.md` (`Phase = Integration`) scoped to the wiring issue          |
-| **Bad test**                  | Re-run responsible test prompt to rewrite the faulty test in place                             |
-| **Contract mismatch**         | Amend `contract-v[[VERSION]].md`, re-approve at Approval Gate, run both Dev Agents in Fix Mode |
-| **FDS ambiguity**             | Escalate to human per `rules/workflow.md §4` (Clarification vs Extension vs Contradiction)     |
+| Category                      | Routing & Action                                                                           |
+| :---------------------------- | :----------------------------------------------------------------------------------------- |
+| **Backend defect**            | Run `.ai/prompts/build-mode.md` (`Phase = Backend`, `Mode = Fix`)                          |
+| **Frontend defect**           | Run `.ai/prompts/build-mode.md` (`Phase = Frontend`, `Mode = Fix`)                         |
+| **Integration-wiring defect** | Re-run `.ai/prompts/build-mode.md` (`Phase = Integration`) scoped to the wiring issue      |
+| **Bad test**                  | Re-run responsible test prompt to rewrite the faulty test in place                         |
+| **Contract mismatch**         | Amend `contract-v[[VERSION]].md`, re-approve at Approval Gate, and re-run build sessions   |
+| **FDS ambiguity**             | Escalate to human per `rules/workflow.md §4` (Clarification vs Extension vs Contradiction) |
 
-### Running Fix Mode:
+---
 
-- **Frontend Fix**:
-  - System prompt: `.ai/prompts/build/build-mode-frontend.md`
-  - User message:
-    ```text
-    Feature ID = expense-crud
-    Mode = Fix
-    Findings = <finding IDs from diagnosis report>
-    ```
-- **Backend Fix**:
-  - System prompt: `.ai/prompts/build/build-mode-backend.md`
-  - User message:
-    ```text
-    Feature ID = expense-crud
-    Mode = Fix
-    Findings = <finding IDs from diagnosis report>
-    ```
+### Step 2: Sequencing Rule — Contract Mismatches First
 
-Commit fixes with path-scoped staging (`git add frontend/` or `git add backend/`), re-run Integration (Phase 7), and re-run tests (Phase 8).
+Before running Fix Mode on any source code, check the diagnosis report's **Batching Summary**:
+
+- If a **Contract Mismatch** finding is present alongside Frontend or Backend defects:
+  1. Amend `contract-v[[VERSION]].md` to reflect the required field/schema changes.
+  2. Re-approve and freeze the contract at the Developer Approval Gate.
+     _Never fix code against a contract that is about to change; resolving the contract first prevents wasted rework._
+
+---
+
+### Step 3: Handling Simultaneous Frontend & Backend Defects
+
+When the diagnosis report lists defects across both layers (e.g. Frontend: `D1, D3`, Backend: `D2`), select your execution strategy:
+
+#### Strategy A: Multi-Agent Parallel Fix (`Phase = Both`)
+
+The primary AI agent employs a multi-agent pattern and rolls up two concurrent subagents:
+
+```text
+System prompt : .ai/prompts/build-mode.md
+User message  : Feature ID = expense-crud
+                Phase = Both
+                Mode = Fix
+                Findings = D1, D2, D3
+```
+
+- **Frontend Subagent**: Resolves `D1, D3` strictly within `frontend/`.
+- **Backend Subagent**: Resolves `D2` strictly within `backend/` and `packages/contracts/`.
+
+#### Strategy B: Pragmatic Sequential Fix (When Session Tokens Are Low)
+
+If token budget is constrained, run them individually in focused turns:
+
+1. **Backend Fix**:
+   ```text
+   System prompt : .ai/prompts/build-mode.md
+   User message  : Feature ID = expense-crud
+                   Phase = Backend
+                   Mode = Fix
+                   Findings = D2
+   ```
+   Commit backend fixes:
+   ```bash
+   pnpm format
+   git status
+   git add backend/ packages/contracts/
+   git commit -m "fix(expense-crud): resolve backend defect D2"
+   ```
+2. **Frontend Fix**:
+   ```text
+   System prompt : .ai/prompts/build-mode.md
+   User message  : Feature ID = expense-crud
+                   Phase = Frontend
+                   Mode = Fix
+                   Findings = D1, D3
+   ```
+   Commit frontend fixes:
+   ```bash
+   pnpm format
+   git status
+   git add frontend/
+   git commit -m "fix(expense-crud): resolve frontend defects D1, D3"
+   ```
+
+> [!TIP]
+> **Batching Rule**: Always batch multiple findings for the same layer into **one** Fix Mode session (e.g. `Findings = D1, D3`). Never run separate sessions back-to-back for individual findings on the same layer without staging in between, as subsequent edits may overwrite or conflict with earlier fixes.
+
+---
+
+### Step 4: Post-Fix Verification Loop
+
+Regardless of which strategy was used:
+
+1. **Re-run Integration Build (Phase 7)**:
+   ```text
+   System prompt : .ai/prompts/build-mode.md
+   User message  : Feature ID = expense-crud
+                   Phase = Integration
+   ```
+   _Commit integration wiring changes if any were updated._
+2. **Re-run Parallel Testing (Phase 8)**:
+   Re-run both test sessions concurrently (`test-build-mode-unit-api.md` and `test-build-mode-ui-e2e.md`) to verify that all defects are eliminated and zero regressions were introduced.
+3. Once all tests pass, proceed to **Phase 8c (SonarQube Full Gate)** and **Phase 9 (Validation Mode)**.
 
 ---
 
@@ -552,26 +624,25 @@ Append final entry to `features/expense-crud/plans/activity-log.md`:
 Use the complexity scoring rubric in `rules/workflow.md §5` to select the workflow depth:
 
 - **Low complexity (Score 0–2)**: Single component, no API contract changes. Use the simple sequential path:
-  - Plan: `.ai/prompts/plan.md`
-  - Build: `.ai/prompts/build-mode.md` (Frontend → Backend → Integration sequentially)
+  - Plan: `.ai/prompts/plan-mode.md`
+  - Build: `.ai/prompts/build-mode.md` (`Phase = Frontend` → `Backend` → `Integration` sequentially)
   - Validate: `.ai/prompts/validation-prompt.md`
 - **Medium complexity (Score 3–4)**: Adopt Plan Review (`plan-review.md`) and parallel Testing (`test-build-mode-unit-api.md`, `test-build-mode-ui-e2e.md`), but keep Build sequential.
-- **High complexity (Score 5–6)**: Full multi-agent pipeline detailed above with parallel fragments, plan review, parallel builds, and parallel test execution.
+- **High complexity (Score 5–6)**: Full multi-agent pipeline detailed above with parallel plan fragments, plan review, parallel builds (`Phase = Both`), and parallel test execution.
 
 ---
 
 ## Summary of All AI Prompts
 
-| File                                           | Role                                                                            |
-| :--------------------------------------------- | :------------------------------------------------------------------------------ |
-| `.ai/prompts/plan/plan-fe.md`                  | Frontend planning fragment (parallel with `plan-be.md`)                         |
-| `.ai/prompts/plan/plan-be.md`                  | Backend planning fragment (parallel with `plan-fe.md`)                          |
-| `.ai/prompts/plan/plan-synthesizer.md`         | Synthesizes fragments into `plan-v<version>.md` and `contract-v<version>.md`    |
-| `.ai/prompts/plan/plan-review.md`              | Independent pre-approval review of plan and API contract                        |
-| `.ai/prompts/build/build-mode-frontend.md`     | Parallel frontend build against frozen contract mocks                           |
-| `.ai/prompts/build/build-mode-backend.md`      | Parallel backend build (generates `packages/contracts` and API)                 |
-| `.ai/prompts/build-mode.md`                    | Baseline build prompt used for Phase 7 (Integration) and sequential simple path |
-| `.ai/prompts/test/test-build-mode-unit-api.md` | Backend & API integration tests (parallel with UI/E2E)                          |
-| `.ai/prompts/test/test-build-mode-ui-e2e.md`   | Frontend component & Playwright E2E tests (parallel with Unit/API)              |
-| `.ai/prompts/diagnosis/diagnosis-mode.md`      | Classifies test/validation failures into 6 categories with concrete routing     |
-| `.ai/prompts/validation-prompt.md`             | Baseline validation prompt used for Phase 9 final audit and compliance report   |
+| File                                           | Role                                                                                              |
+| :--------------------------------------------- | :------------------------------------------------------------------------------------------------ |
+| `.ai/prompts/plan/plan-fe.md`                  | Frontend planning fragment (parallel with `plan-be.md`)                                           |
+| `.ai/prompts/plan/plan-be.md`                  | Backend planning fragment (parallel with `plan-fe.md`)                                            |
+| `.ai/prompts/plan/plan-synthesizer.md`         | Synthesizes fragments into `plan-v<version>.md` and `contract-v<version>.md`                      |
+| `.ai/prompts/plan/plan-review.md`              | Independent pre-approval review of plan and API contract                                          |
+| `.ai/prompts/plan-mode.md`                     | Baseline single-agent plan mode for simple path / low-complexity features                         |
+| `.ai/prompts/build-mode.md`                    | Unified build prompt supporting `Phase: "Frontend"` \| `"Backend"` \| `"Both"` \| `"Integration"` |
+| `.ai/prompts/test/test-build-mode-unit-api.md` | Backend & API integration tests (parallel with UI/E2E)                                            |
+| `.ai/prompts/test/test-build-mode-ui-e2e.md`   | Frontend component & Playwright E2E tests (parallel with Unit/API)                                |
+| `.ai/prompts/diagnosis/diagnosis-mode.md`      | Classifies test/validation failures into 6 categories with concrete routing                       |
+| `.ai/prompts/validation-prompt.md`             | Baseline validation prompt used for Phase 9 final audit and compliance report                     |

@@ -61,7 +61,7 @@ FDS + Visual Design + Behavior Spec
 - **On approval**: All specs (`fds.md`, `behavior.md`, `visuals/`, `contract-v<version>.md`) are frozen. No changes permitted without creating a new version and restarting planning.
 - **Exit criteria**: Explicit human approval is recorded.
 
-### Phase 3 — Frontend Build Mode (`.ai/prompts/build/build-mode-frontend.md` or `.ai/prompts/build-mode.md`)
+### Phase 3 — Frontend Build Mode (`.ai/prompts/build-mode.md` with `Phase = Frontend`)
 
 - **Role**: Implements UI components using mock data only. No real backend calls.
 - **Rules**:
@@ -78,7 +78,7 @@ FDS + Visual Design + Behavior Spec
 - **On freeze**: UI design and component behavior are frozen.
 - **Exit criteria**: Reviewer explicitly signs off. UI is frozen.
 
-### Phase 5 — Backend Build Mode (`.ai/prompts/build/build-mode-backend.md` or `.ai/prompts/build-mode.md`)
+### Phase 5 — Backend Build Mode (`.ai/prompts/build-mode.md` with `Phase = Backend`)
 
 - **Role**: Implements backend API layers (Presentation → Service → Repository → Database) to satisfy the API contracts and FDS specifications.
 - **Rules**:
@@ -88,7 +88,7 @@ FDS + Visual Design + Behavior Spec
   - 3-attempt self-correction loop per task.
 - **Exit criteria**: Lint and typecheck pass. All backend tasks complete. API shapes match contract definitions.
 
-### Phase 6 — Integration Build Mode (`.ai/prompts/build-mode.md`)
+### Phase 6 — Integration Build Mode (`.ai/prompts/build-mode.md` with `Phase = Integration`)
 
 - **Role**: Replaces frontend mock data with real backend API calls via ts-rest client.
 - **Rules**:
@@ -106,15 +106,15 @@ FDS + Visual Design + Behavior Spec
   - 3-attempt retry limit. On persistent failure, stop and escalate.
 - **Exit criteria**: SonarQube Static Analysis Gate passes with zero blocker/critical issues.
 
-### Phase 8 — Testing Build Mode (`.ai/prompts/test/` or `.ai/prompts/test-build-mode.md`)
+### Phase 8 — Testing Build Mode (`.ai/prompts/test/test-build-mode-unit-api.md` & `.ai/prompts/test/test-build-mode-ui-e2e.md`)
 
-- **Role**: Spec-driven, post-implementation test generation (Unit/API and UI/E2E).
+- **Role**: Spec-driven, post-implementation test generation (Unit/API and UI/E2E in parallel).
 - **Input**: Frozen FDS (`fds.md`), Behavior Spec (`behavior.md`), integrated source code.
 - **Rules**:
   - Primary context is the specification, not the implementation.
   - Generates unit, integration, and E2E tests that validate behavior against the FDS.
   - **MUST NOT modify production source code** unless a genuine defect is found.
-  - Defect classification required: `defect` (return to Backend/Integration Build via Diagnosis Mode) vs `bad-test` (rewrite the test).
+  - Defect classification required: `defect` (triage via `.ai/prompts/diagnosis/diagnosis-mode.md` and return to Backend/Frontend/Integration build) vs `bad-test` (rewrite the test).
   - Human escalation if classification is uncertain.
 - **Exit criteria**: All tests pass. Coverage meets the threshold declared in `fds.md` frontmatter.
 

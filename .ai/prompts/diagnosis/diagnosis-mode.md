@@ -59,15 +59,15 @@ If a Contract-mismatch finding appears alongside Backend/Frontend/Integration de
 Your report is meant to be acted on directly, without the developer having to look up what a category means. For every finding, write a **Suggested Next Step** using the template below for its category, filling in the actual feature ID, finding ID(s), file paths, and a short description of the defect. These templates mirror `defect-scenarios-playbook.md` exactly — use its wording, don't improvise different phrasing for the same category.
 
 - **Backend defect** →
-  `Run build-mode-backend.md in Fix Mode: Feature ID = <feature-id>, Mode = Fix, Findings = <this ID + any other Backend-defect IDs in this batch>. Then re-run Integration Build and both Test agents.`
+  `Run .ai/prompts/build-mode.md in Fix Mode: Feature ID = <feature-id>, Phase = Backend, Mode = Fix, Findings = <this ID + any other Backend-defect IDs in this batch>. Then re-run Integration Build and both Test agents.`
 - **Frontend defect** →
-  `Run build-mode-frontend.md in Fix Mode: Feature ID = <feature-id>, Mode = Fix, Findings = <this ID + any other Frontend-defect IDs in this batch>. Then re-run Integration Build and both Test agents.`
+  `Run .ai/prompts/build-mode.md in Fix Mode: Feature ID = <feature-id>, Phase = Frontend, Mode = Fix, Findings = <this ID + any other Frontend-defect IDs in this batch>. Then re-run Integration Build and both Test agents.`
 - **Integration-wiring defect** →
   `Re-run .ai/prompts/build-mode.md with Phase = Integration. In the user message, name this specific defect: "<one-line description>" and instruct it not to redo wiring that's already correct. Then re-run both Test agents.`
 - **Bad test** →
   `Re-run <test-build-mode-unit-api.md or test-build-mode-ui-e2e.md, whichever wrote it>, pointing at <test file path> and describing what's wrong with the assertion/fixture. No re-run of Integration needed.`
 - **Contract mismatch** →
-  `Amend contract-v<version>.md (directly for a small change, or via a scoped re-invocation of plan-synthesizer.md for a larger one), citing this finding as the reason. Re-review and re-approve it, then run BOTH build-mode-frontend.md and build-mode-backend.md in Fix Mode before re-running Integration and both Test agents.`
+  `Amend contract-v<version>.md (directly for a small change, or via a scoped re-invocation of plan-synthesizer.md for a larger one), citing this finding as the reason. Re-review and re-approve it, then run .ai/prompts/build-mode.md (with Phase = Both, or Backend and Frontend individually) in Fix Mode before re-running Integration and both Test agents.`
 - **FDS ambiguity** →
   `STOP. A human must read fds.md and classify this as Clarification / Extension / Contradiction (rules/workflow.md §4) before anything restarts — Extension/Contradiction require a new FDS version and a restart from Plan Mode; Clarification only needs an in-place addendum.`
 - **Retry budget exceeded** (overrides the category's own template) →

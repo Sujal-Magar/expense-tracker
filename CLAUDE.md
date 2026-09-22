@@ -17,12 +17,12 @@ Detailed operations are documented in [WORKFLOW_PLAYBOOK.md](file:///home/sujal/
 | **2 — Plan Synthesizer**            | After both fragments exist       | `.ai/prompts/plan/plan-synthesizer.md`                                                                             |
 | **3 — Plan Review**                 | Before developer approval        | `.ai/prompts/plan/plan-review.md`                                                                                  |
 | **4 — Developer Approval Gate**     | After plan review passes         | Human reviews & freezes `plan-v<version>.md` and `contract-v<version>.md`                                          |
-| **5 — Build Mode (Parallel)**       | After approval gate              | `.ai/prompts/build/build-mode-frontend.md` (Frontend)<br>`.ai/prompts/build/build-mode-backend.md` (Backend)       |
+| **5 — Build Mode (Parallel)**       | After approval gate              | `.ai/prompts/build-mode.md` (`Phase = Both`, or individual `Frontend` / `Backend`)                                 |
 | **6 — UI Review & Freeze**          | After frontend build completes   | Human confirms UI against visual specs; freezes UI                                                                 |
 | **7 — Integration Build Mode**      | After both build sessions commit | `.ai/prompts/build-mode.md` with `Phase = Integration`                                                             |
 | **7b — Code Validation 1**          | After integration commits        | SonarQube Static Analysis Gate (no coverage threshold)                                                             |
 | **8 — Test Build Mode (Parallel)**  | Post-integration spec tests      | `.ai/prompts/test/test-build-mode-unit-api.md` (Unit/API)<br>`.ai/prompts/test/test-build-mode-ui-e2e.md` (UI/E2E) |
-| **8b — Diagnosis & Fix Loop**       | On unresolved test/gate failures | `.ai/prompts/diagnosis/diagnosis-mode.md` (routes to Dev Agents in Fix Mode)                                       |
+| **8b — Diagnosis & Fix Loop**       | On unresolved test/gate failures | `.ai/prompts/diagnosis/diagnosis-mode.md`                                                                          |
 | **8c — Code Validation 2**          | After tests pass                 | SonarQube Full Quality Gate (static analysis + coverage target)                                                    |
 | **9 — Validation Mode**             | Final compliance audit           | `.ai/prompts/validation-prompt.md`                                                                                 |
 
@@ -30,13 +30,13 @@ Detailed operations are documented in [WORKFLOW_PLAYBOOK.md](file:///home/sujal/
 
 For low-complexity features (Score 0–2 per `rules/workflow.md §5`):
 
-- **Plan**: `.ai/prompts/plan.md`
-- **Build**: `.ai/prompts/build-mode.md` (`Phase = Frontend | Backend | Integration` sequentially)
+- **Plan**: `.ai/prompts/plan-mode.md`
+- **Build**: `.ai/prompts/build-mode.md` (`Phase = Frontend` → `Backend` → `Integration` sequentially)
 - **Validation**: `.ai/prompts/validation-prompt.md`
 
 ---
 
-## How to Invoke Multi-Agent Modes
+## How to Invoke AI Workflow Modes
 
 ### Phase 1: Parallel Plan Fragments
 
@@ -64,16 +64,19 @@ System prompt : .ai/prompts/plan/plan-review.md
 User message  : Feature ID = expense-crud
 ```
 
-### Phase 5: Parallel Build Mode
+### Phase 5: Build Mode (Multi-Agent Subagents & Pragmatic Choice)
 
 ```text
-# Session A (Frontend):
-System prompt : .ai/prompts/build/build-mode-frontend.md
+# Multi-Agent Parallel Execution (Agent rolls up Frontend & Backend subagents):
+System prompt : .ai/prompts/build-mode.md
 User message  : Feature ID = expense-crud
+                Phase = Both
 
-# Session B (Backend, parallel):
-System prompt : .ai/prompts/build/build-mode-backend.md
+# Pragmatic Choice (When remaining session tokens are low):
+# Run one layer individually in a single focused session without subagents:
+System prompt : .ai/prompts/build-mode.md
 User message  : Feature ID = expense-crud
+                Phase = Frontend (or Backend)
 ```
 
 ### Phase 7: Integration Build Mode
