@@ -16,7 +16,7 @@
       "version": "1.0.0",
       "path": "features/auth/fds.md",
       "behavior_spec": "features/auth/behavior.md",
-      "visual_spec": ["features/auth/visuals/auth.png"],
+      "visual_spec": ["features/auth/visuals/auth-signin-page.png", "features/auth/visuals/auth-signup-page.png"],
       "owner": "security-team",
       "dependencies": []
     },
@@ -28,7 +28,7 @@
       "version": "1.0.0",
       "path": "features/profile/fds.md",
       "behavior_spec": "features/profile/behavior.md",
-      "visual_spec": ["features/profile/visuals/profile.png"],
+      "visual_spec": ["features/profile/visuals/profile-page.png"],
       "owner": "user-platform-team",
       "dependencies": ["auth"]
     },
@@ -40,7 +40,14 @@
       "version": "1.0.0",
       "path": "features/transactions/fds.md",
       "behavior_spec": "features/transactions/behavior.md",
-      "visual_spec": ["features/transactions/visuals/transactions.png"],
+      "visual_spec": [
+        "features/transactions/visuals/transactions-page.png",
+        "features/transactions/visuals/transaction-add-modal.png",
+        "features/transactions/visuals/transaction-edit-modal.png",
+        "features/transactions/visuals/transaction-delete-modal.png",
+        "features/transactions/visuals/transaction-toast-success.png",
+        "features/transactions/visuals/transaction-toast-error.png"
+      ],
       "owner": "core-finance-team",
       "dependencies": ["auth", "profile"]
     },
@@ -52,7 +59,14 @@
       "version": "1.0.0",
       "path": "features/budget/fds.md",
       "behavior_spec": "features/budget/behavior.md",
-      "visual_spec": ["features/budget/visuals/budget.png"],
+      "visual_spec": [
+        "features/budget/visuals/budget-page.png",
+        "features/budget/visuals/budget-add-modal.png",
+        "features/budget/visuals/budget-edit-modal.png",
+        "features/budget/visuals/budget-delete-modal.png",
+        "features/budget/visuals/budget-toast-success.png",
+        "features/budget/visuals/budget-toast-error.png"
+      ],
       "owner": "planning-team",
       "dependencies": ["auth", "profile", "transactions"]
     },
@@ -64,7 +78,12 @@
       "version": "1.0.0",
       "path": "features/goals/fds.md",
       "behavior_spec": "features/goals/behavior.md",
-      "visual_spec": ["features/goals/visuals/goals.png"],
+      "visual_spec": [
+        "features/goals/visuals/goals-page.png",
+        "features/goals/visuals/goal-add-modal.png",
+        "features/goals/visuals/goal-toast-success.png",
+        "features/goals/visuals/goal-toast-error.png"
+      ],
       "owner": "planning-team",
       "dependencies": ["auth", "profile", "transactions"]
     },
@@ -76,7 +95,7 @@
       "version": "1.0.0",
       "path": "features/reports/fds.md",
       "behavior_spec": "features/reports/behavior.md",
-      "visual_spec": ["features/reports/visuals/reports.png"],
+      "visual_spec": ["features/reports/visuals/reports-page.png"],
       "owner": "analytics-team",
       "dependencies": ["auth", "profile", "transactions", "budget"]
     },
@@ -88,7 +107,7 @@
       "version": "1.0.0",
       "path": "features/dashboard/fds.md",
       "behavior_spec": "features/dashboard/behavior.md",
-      "visual_spec": ["features/dashboard/visuals/dashboard.png"],
+      "visual_spec": ["features/dashboard/visuals/dashboard-page.png"],
       "owner": "analytics-team",
       "dependencies": ["auth", "profile", "transactions", "budget", "goals", "reports"]
     }

@@ -104,7 +104,7 @@ Create the feature directory under `features/[[FEATURE]]/`:
   changelog:
     - version: 1.0.0
       date: YYYY-MM-DD
-      changes: "Initial draft of [[FEATURE]] specification"
+      summary: "Initial draft of [[FEATURE]] specification"
   ---
 
   # Feature Design Specification: [[FEATURE]]

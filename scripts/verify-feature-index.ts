@@ -76,12 +76,18 @@ function parseFdsMetadata(fdsContent: string): {
   version?: string;
   status?: string;
   latestChangelogVersion?: string;
+  dependencies?: string[];
+  hasCodeBlock?: boolean;
+  hasAcceptanceCriteria?: boolean;
 } {
   const result: {
     id?: string;
     version?: string;
     status?: string;
     latestChangelogVersion?: string;
+    dependencies?: string[];
+    hasCodeBlock?: boolean;
+    hasAcceptanceCriteria?: boolean;
   } = {};
 
   // Check YAML Frontmatter
@@ -106,6 +112,24 @@ function parseFdsMetadata(fdsContent: string): {
     if (changelogVersions.length > 0) {
       result.latestChangelogVersion = changelogVersions[0];
     }
+
+    // Parse dependencies
+    const depInlineMatch = yaml.match(/^dependencies:\s*\[(.*?)\]/m);
+    if (depInlineMatch) {
+      result.dependencies = depInlineMatch[1]
+        .split(",")
+        .map((s) => cleanQuotes(s))
+        .filter(Boolean);
+    } else {
+      const depBlockMatch = yaml.match(/^dependencies:\s*\n((?:\s*-\s*[^\n]+\n*)+)/m);
+      if (depBlockMatch) {
+        result.dependencies = depBlockMatch[1]
+          .split("\n")
+          .map((line) => line.replace(/^\s*-\s*/, ""))
+          .map((s) => cleanQuotes(s))
+          .filter(Boolean);
+      }
+    }
   }
 
   // Fallback to Markdown formatting if not in frontmatter
@@ -117,6 +141,15 @@ function parseFdsMetadata(fdsContent: string): {
     const mdVersionMatch = fdsContent.match(/\*\*Version:\*\*\s*`?([^\n`*]+)`?/i);
     if (mdVersionMatch) result.version = mdVersionMatch[1].trim();
   }
+
+  // Check for forbidden code blocks
+  result.hasCodeBlock = fdsContent.includes("```");
+
+  // Check for acceptance criteria section with criteria items
+  const acMatch = fdsContent.match(/## (?:[0-9]+\.\s*)?Acceptance Criteria([\s\S]*?)(?:##|$)/i);
+  const hasAcSection = acMatch !== null;
+  const hasAcItem = hasAcSection && /(?:^|\n)\s*[-*0-9.]+\s+[^\n]+/.test(acMatch[1]);
+  result.hasAcceptanceCriteria = hasAcSection && hasAcItem;
 
   return result;
 }
@@ -303,6 +336,45 @@ function verifyFeatureIndex(): void {
               fixGuide: `Update the "id" in ${feature.path} frontmatter to match "${key}".`,
             });
           }
+
+          // Code block check in FDS
+          if (fdsMeta.hasCodeBlock) {
+            inconsistencies.push({
+              featureId: featureLabel,
+              featureTitle: title,
+              field: "path",
+              issue: `FDS file contains forbidden code blocks (fenced code)`,
+              fixGuide: `Remove code blocks from ${feature.path} and specify interfaces using Markdown tables or references.`,
+            });
+          }
+
+          // Acceptance criteria check in FDS
+          if (!fdsMeta.hasAcceptanceCriteria) {
+            inconsistencies.push({
+              featureId: featureLabel,
+              featureTitle: title,
+              field: "path",
+              issue: `FDS file is missing required '## Acceptance Criteria' section with testable criteria items`,
+              fixGuide: `Add a '## Acceptance Criteria' section with testable criteria bullets to ${feature.path}.`,
+            });
+          }
+
+          // Dependencies alignment between index.json and FDS frontmatter
+          if (fdsMeta.dependencies !== undefined && feature.dependencies !== undefined) {
+            const indexDeps = [...feature.dependencies].sort().join(", ");
+            const fdsDeps = [...fdsMeta.dependencies].sort().join(", ");
+            if (indexDeps !== fdsDeps) {
+              inconsistencies.push({
+                featureId: featureLabel,
+                featureTitle: title,
+                field: "dependencies",
+                issue: `Dependencies mismatch between index.json and FDS frontmatter`,
+                expected: `FDS has [${fdsDeps}]`,
+                actual: `index.json has [${indexDeps}]`,
+                fixGuide: `Align dependencies in features/index.json and ${feature.path} frontmatter.`,
+              });
+            }
+          }
         } catch (readErr) {
           inconsistencies.push({
             featureId: featureLabel,
@@ -367,6 +439,7 @@ function verifyFeatureIndex(): void {
           fixGuide: `Format "visual_spec" as an array of paths: ["features/${key}/visuals/${key}.png"].`,
         });
       } else {
+        const seenVisuals = new Set<string>();
         for (const specPath of feature.visual_spec) {
           if (typeof specPath !== "string" || specPath.trim() === "") {
             inconsistencies.push({
@@ -378,6 +451,18 @@ function verifyFeatureIndex(): void {
             });
             continue;
           }
+
+          if (seenVisuals.has(specPath)) {
+            inconsistencies.push({
+              featureId: featureLabel,
+              featureTitle: title,
+              field: "visual_spec",
+              issue: `Duplicate visual specification path: "${specPath}"`,
+              actual: specPath,
+              fixGuide: `Remove duplicate "${specPath}" from visual_spec array in features/index.json.`,
+            });
+          }
+          seenVisuals.add(specPath);
 
           const absVisualPath = join(ROOT_DIR, specPath);
           if (!existsSync(absVisualPath)) {
