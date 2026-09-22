@@ -38,7 +38,7 @@ interface FeatureEntry {
   version?: string;
   path?: string;
   behavior_spec?: string;
-  visual_spec?: string;
+  visual_spec?: string[];
   figma_spec?: string;
   owner?: string;
   dependencies?: string[];
@@ -330,20 +330,67 @@ function verifyFeatureIndex(): void {
       }
     }
 
-    // Check Visual Spec (if defined)
-    const visualPath = feature.visual_spec ?? feature.figma_spec;
-    const visualField = feature.visual_spec ? "visual_spec" : "figma_spec";
-    if (visualPath) {
-      const absVisualPath = join(ROOT_DIR, visualPath);
-      if (!existsSync(absVisualPath)) {
+    // Check Figma Spec (single string pointing to figma.md)
+    if (feature.figma_spec !== undefined) {
+      if (typeof feature.figma_spec !== "string" || feature.figma_spec.trim() === "") {
         inconsistencies.push({
           featureId: featureLabel,
           featureTitle: title,
-          field: visualField,
-          issue: `Visual specification file does not exist at specified path`,
-          actual: visualPath,
-          fixGuide: `Place visual asset at "${visualPath}" or remove the ${visualField} property until the asset is added.`,
+          field: "figma_spec",
+          issue: `'figma_spec' must be a single string path (e.g. "features/${key}/visuals/figma.md")`,
+          fixGuide: `Provide a single file path string for figma_spec.`,
         });
+      } else {
+        const absFigmaPath = join(ROOT_DIR, feature.figma_spec);
+        if (!existsSync(absFigmaPath)) {
+          inconsistencies.push({
+            featureId: featureLabel,
+            featureTitle: title,
+            field: "figma_spec",
+            issue: `Figma specification file does not exist at specified path`,
+            actual: feature.figma_spec,
+            fixGuide: `Create "${feature.figma_spec}" or remove the figma_spec property until the file is created.`,
+          });
+        }
+      }
+    }
+
+    // Check Visual Spec (array of strings: UI screenshots, markdown specs, wireframes)
+    if (feature.visual_spec !== undefined) {
+      if (!Array.isArray(feature.visual_spec)) {
+        inconsistencies.push({
+          featureId: featureLabel,
+          featureTitle: title,
+          field: "visual_spec",
+          issue: `'visual_spec' must be an array of string paths`,
+          actual: typeof feature.visual_spec,
+          fixGuide: `Format "visual_spec" as an array of paths: ["features/${key}/visuals/${key}.png"].`,
+        });
+      } else {
+        for (const specPath of feature.visual_spec) {
+          if (typeof specPath !== "string" || specPath.trim() === "") {
+            inconsistencies.push({
+              featureId: featureLabel,
+              featureTitle: title,
+              field: "visual_spec",
+              issue: `Visual specification path in array must be a non-empty string`,
+              fixGuide: `Ensure all paths in "visual_spec" are valid string paths.`,
+            });
+            continue;
+          }
+
+          const absVisualPath = join(ROOT_DIR, specPath);
+          if (!existsSync(absVisualPath)) {
+            inconsistencies.push({
+              featureId: featureLabel,
+              featureTitle: title,
+              field: "visual_spec",
+              issue: `Visual specification file does not exist at specified path`,
+              actual: specPath,
+              fixGuide: `Place visual asset or UI markdown file at "${specPath}" or update the "visual_spec" array.`,
+            });
+          }
+        }
       }
     }
 

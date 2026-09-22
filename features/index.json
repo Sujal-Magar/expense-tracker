@@ -16,7 +16,7 @@
       "version": "1.0.0",
       "path": "features/auth/fds.md",
       "behavior_spec": "features/auth/behavior.md",
-      "visual_spec": "features/auth/visuals/auth.png",
+      "visual_spec": ["features/auth/visuals/auth.png"],
       "owner": "security-team",
       "dependencies": []
     },
@@ -28,7 +28,7 @@
       "version": "1.0.0",
       "path": "features/profile/fds.md",
       "behavior_spec": "features/profile/behavior.md",
-      "visual_spec": "features/profile/visuals/profile.png",
+      "visual_spec": ["features/profile/visuals/profile.png"],
       "owner": "user-platform-team",
       "dependencies": ["auth"]
     },
@@ -40,7 +40,7 @@
       "version": "1.1.0",
       "path": "features/transactions/fds.md",
       "behavior_spec": "features/transactions/behavior.md",
-      "visual_spec": "features/transactions/visuals/transactions.png",
+      "visual_spec": ["features/transactions/visuals/transactions.png"],
       "owner": "core-finance-team",
       "dependencies": ["auth", "profile"]
     },
@@ -52,7 +52,7 @@
       "version": "1.0.0",
       "path": "features/budget/fds.md",
       "behavior_spec": "features/budget/behavior.md",
-      "visual_spec": "features/budget/visuals/budget.png",
+      "visual_spec": ["features/budget/visuals/budget.png"],
       "owner": "planning-team",
       "dependencies": ["auth", "profile", "transactions"]
     },
@@ -64,7 +64,7 @@
       "version": "1.0.0",
       "path": "features/goals/fds.md",
       "behavior_spec": "features/goals/behavior.md",
-      "visual_spec": "features/goals/visuals/goals.png",
+      "visual_spec": ["features/goals/visuals/goals.png"],
       "owner": "planning-team",
       "dependencies": ["auth", "profile", "transactions"]
     },
@@ -76,7 +76,7 @@
       "version": "1.0.0",
       "path": "features/reports/fds.md",
       "behavior_spec": "features/reports/behavior.md",
-      "visual_spec": "features/reports/visuals/reports.png",
+      "visual_spec": ["features/reports/visuals/reports.png"],
       "owner": "analytics-team",
       "dependencies": ["auth", "profile", "transactions", "budget"]
     },
@@ -88,7 +88,7 @@
       "version": "1.0.0",
       "path": "features/dashboard/fds.md",
       "behavior_spec": "features/dashboard/behavior.md",
-      "visual_spec": "features/dashboard/visuals/dashboard.png",
+      "visual_spec": ["features/dashboard/visuals/dashboard.png"],
       "owner": "analytics-team",
       "dependencies": ["auth", "profile", "transactions", "budget", "goals", "reports"]
     }
