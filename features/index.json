@@ -16,7 +16,9 @@
       "version": "1.0.0",
       "path": "features/auth/fds.md",
       "behavior_spec": "features/auth/behavior.md",
-      "visual_spec": ["features/auth/visuals/auth.png"],
+      "visual_spec": [
+        "features/auth/visuals/auth.png"
+      ],
       "owner": "security-team",
       "dependencies": []
     },
@@ -28,21 +30,30 @@
       "version": "1.0.0",
       "path": "features/profile/fds.md",
       "behavior_spec": "features/profile/behavior.md",
-      "visual_spec": ["features/profile/visuals/profile.png"],
+      "visual_spec": [
+        "features/profile/visuals/profile.png"
+      ],
       "owner": "user-platform-team",
-      "dependencies": ["auth"]
+      "dependencies": [
+        "auth"
+      ]
     },
     "transactions": {
       "id": "transactions",
       "title": "Transactions Management",
       "domain": "finance",
       "status": "active",
-      "version": "1.1.0",
+      "version": "1.0.0",
       "path": "features/transactions/fds.md",
       "behavior_spec": "features/transactions/behavior.md",
-      "visual_spec": ["features/transactions/visuals/transactions.png"],
+      "visual_spec": [
+        "features/transactions/visuals/transactions.png"
+      ],
       "owner": "core-finance-team",
-      "dependencies": ["auth", "profile"]
+      "dependencies": [
+        "auth",
+        "profile"
+      ]
     },
     "budget": {
       "id": "budget",
@@ -52,9 +63,15 @@
       "version": "1.0.0",
       "path": "features/budget/fds.md",
       "behavior_spec": "features/budget/behavior.md",
-      "visual_spec": ["features/budget/visuals/budget.png"],
+      "visual_spec": [
+        "features/budget/visuals/budget.png"
+      ],
       "owner": "planning-team",
-      "dependencies": ["auth", "profile", "transactions"]
+      "dependencies": [
+        "auth",
+        "profile",
+        "transactions"
+      ]
     },
     "goals": {
       "id": "goals",
@@ -64,9 +81,15 @@
       "version": "1.0.0",
       "path": "features/goals/fds.md",
       "behavior_spec": "features/goals/behavior.md",
-      "visual_spec": ["features/goals/visuals/goals.png"],
+      "visual_spec": [
+        "features/goals/visuals/goals.png"
+      ],
       "owner": "planning-team",
-      "dependencies": ["auth", "profile", "transactions"]
+      "dependencies": [
+        "auth",
+        "profile",
+        "transactions"
+      ]
     },
     "reports": {
       "id": "reports",
@@ -76,9 +99,16 @@
       "version": "1.0.0",
       "path": "features/reports/fds.md",
       "behavior_spec": "features/reports/behavior.md",
-      "visual_spec": ["features/reports/visuals/reports.png"],
+      "visual_spec": [
+        "features/reports/visuals/reports.png"
+      ],
       "owner": "analytics-team",
-      "dependencies": ["auth", "profile", "transactions", "budget"]
+      "dependencies": [
+        "auth",
+        "profile",
+        "transactions",
+        "budget"
+      ]
     },
     "dashboard": {
       "id": "dashboard",
@@ -88,9 +118,18 @@
       "version": "1.0.0",
       "path": "features/dashboard/fds.md",
       "behavior_spec": "features/dashboard/behavior.md",
-      "visual_spec": ["features/dashboard/visuals/dashboard.png"],
+      "visual_spec": [
+        "features/dashboard/visuals/dashboard.png"
+      ],
       "owner": "analytics-team",
-      "dependencies": ["auth", "profile", "transactions", "budget", "goals", "reports"]
+      "dependencies": [
+        "auth",
+        "profile",
+        "transactions",
+        "budget",
+        "goals",
+        "reports"
+      ]
     }
   },
   "archived_features": {}
