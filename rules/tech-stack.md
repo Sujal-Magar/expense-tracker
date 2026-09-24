@@ -36,6 +36,10 @@ All implementations must adhere to these selections unless explicitly approved o
 
 - TanStack Query (`@tanstack/react-query`)
 
+## Authentication
+
+- `@react-oauth/google` (Google sign-in; approved for `auth`, see `features/auth/fds.md` §2)
+
 ## API Communication
 
 - ts-rest React Query Client (`@ts-rest/react-query`)
@@ -68,6 +72,15 @@ All implementations must adhere to these selections unless explicitly approved o
 ## Validation
 
 - Zod
+
+## Authentication
+
+Approved for `auth`, see `features/auth/fds.md` §2.
+
+- `argon2` (password hashing, argon2id)
+- `jose` (JWT signing and verification)
+- `google-auth-library` (Google ID-token verification)
+- `cookie-parser` (refresh token cookie)
 
 ---
 
