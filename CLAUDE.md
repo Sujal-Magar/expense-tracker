@@ -13,7 +13,7 @@ Detailed operations are documented in [WORKFLOW_PLAYBOOK.md](file:///home/sujal/
 | Phase                               | When                             | System Prompt / Action                                                                                             |
 | :---------------------------------- | :------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
 | **0 — Spec & Catalog Registration** | Before planning begins           | Author FDS, behavior, visual specs; run `pnpm index:sync` & `pnpm index:verify`                                    |
-| **1 — Plan Fragments (Parallel)**   | Before any code is written       | `.ai/prompts/plan/plan-fe.md` (Frontend)<br>`.ai/prompts/plan/plan-be.md` (Backend)                                |
+| **1 — Plan Fragments (Parallel)**   | Before any code is written       | `.ai/prompts/plan/plan-fragments.md` (`Phase = Both`, or individual `Frontend` / `Backend`)                        |
 | **2 — Plan Synthesizer**            | After both fragments exist       | `.ai/prompts/plan/plan-synthesizer.md`                                                                             |
 | **3 — Plan Review**                 | Before developer approval        | `.ai/prompts/plan/plan-review.md`                                                                                  |
 | **4 — Developer Approval Gate**     | After plan review passes         | Human reviews & freezes `plan-v<version>.md` and `contract-v<version>.md`                                          |
@@ -38,16 +38,19 @@ For low-complexity features (Score 0–2 per `rules/workflow.md §5`):
 
 ## How to Invoke AI Workflow Modes
 
-### Phase 1: Parallel Plan Fragments
+### Phase 1: Plan Fragments (Multi-Agent Subagents & Pragmatic Choice)
 
 ```text
-# Session A (Frontend):
-System prompt : .ai/prompts/plan/plan-fe.md
+# Multi-Agent Parallel Execution (Agent rolls up Frontend & Backend subagents):
+System prompt : .ai/prompts/plan/plan-fragments.md
 User message  : Feature ID = expense-crud
+                Phase = Both
 
-# Session B (Backend, parallel):
-System prompt : .ai/prompts/plan/plan-be.md
+# Pragmatic Choice (When remaining session tokens are low):
+# Draft one fragment individually in a single focused session without subagents:
+System prompt : .ai/prompts/plan/plan-fragments.md
 User message  : Feature ID = expense-crud
+                Phase = Frontend (or Backend)
 ```
 
 ### Phase 2: Plan Synthesizer
