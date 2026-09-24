@@ -14,9 +14,9 @@ Small, simple features do not require the full multi-agent pipeline — see [Whe
 0. Spec & Catalog Registration ──► pnpm index:sync ──► pnpm index:verify
    (FDS, Behavior, Visuals)                                     │
                                                                 ▼
-1. Plan: Frontend Fragment ══╗
-                              ║  run in parallel (or single-agent plan-mode.md)
-   Plan: Backend Fragment  ══╝
+1. Plan Fragments (plan-fragments.md)
+   • Phase = Both: Frontend || Backend subagents
+   • or Phase = Frontend / Backend individually
                 │
                 ▼
 2. Plan Synthesizer  ──────────► plan-v[[VERSION]].md
@@ -81,6 +81,8 @@ Every agent appends one line to `features/[[FEATURE]]/plans/activity-log.md` upo
 `- <Phase Name> | <YYYY-MM-DD HH:mm> | files touched: <paths> | result: <done / failed / notes>`
 
 For phases that use base prompts (Integration, Validation), add the log entry manually before committing.
+
+Exception: when Phase 1 runs with `Phase = Both`, the two planning subagents do not write to the log (concurrent appends to the same file could race); the orchestrating agent appends both lines after the subagents return.
 
 ---
 
@@ -197,41 +199,54 @@ git commit -m "docs([[FEATURE]]): add feature specifications and register in cat
 
 ---
 
-## Phase 1: Plan Mode — Two Parallel Fragments
+## Phase 1: Plan Mode — Frontend & Backend Fragments
 
-Frontend and backend planning require different contextual focus (UI/interaction vs data model/domain rules). Drafting them independently and merging surfaces interface discrepancies before code is written.
+Frontend and backend planning require different contextual focus (UI/interaction vs data model/domain rules). Drafting them independently and merging surfaces interface discrepancies before code is written. Both fragments come from the single prompt `.ai/prompts/plan/plan-fragments.md`, selected with `Phase`.
 
-### Session A — Frontend Fragment
+### Multi-Agent Parallel Execution: `Phase = Both`
 
-Open a new session:
+When `Phase = Both` is provided, the prompt instructs the AI agent to employ a multi-agent pattern and roll up two parallel subagents in a single session:
 
 - **System Prompt**:
   ```text
-  Read the file .ai/prompts/plan/plan-fe.md and follow it exactly. That is your system prompt.
+  Read the file .ai/prompts/plan/plan-fragments.md and follow it exactly. That is your system prompt.
   ```
 - **User Message**:
   ```text
   Feature ID = expense-crud
+  Phase = Both
   ```
 
-### Session B — Backend Fragment
+#### Subagents Rolled Up:
 
-Concurrently, in a separate session:
+1. **Frontend Subagent**: Reads `fds.md`, `behavior.md`, `visuals/`, and `frontend/src`. Drafts the frontend fragment only.
+2. **Backend Subagent**: Reads `fds.md`, `backend/src`, and `packages/contracts/src`. Drafts the backend fragment only.
+
+Each subagent starts with its own fresh context and never sees the other's output. The orchestrating agent launches both subagents with a write-capable agent type (read-only types cannot save the fragment), verifies both files exist, and appends both `activity-log.md` lines itself (subagents do not write to the log, to avoid concurrent appends). It does not run the Synthesizer.
+
+---
+
+### Developer's Pragmatic Choice: Individual Layer Run (When Session Tokens Are Low)
+
+Pass `Phase = Frontend` or `Phase = Backend` to run one focused agent without spawning subagents, in separate sessions if desired:
 
 - **System Prompt**:
   ```text
-  Read the file .ai/prompts/plan/plan-be.md and follow it exactly. That is your system prompt.
+  Read the file .ai/prompts/plan/plan-fragments.md and follow it exactly. That is your system prompt.
   ```
 - **User Message**:
   ```text
   Feature ID = expense-crud
+  Phase = Frontend   (or Backend)
   ```
+
+---
 
 ### What Happens:
 
-- Session A produces `features/expense-crud/plans/plan-v[[VERSION]]-fragment-frontend.md`.
-- Session B produces `features/expense-crud/plans/plan-v[[VERSION]]-fragment-backend.md`.
-- Both sessions are read-only with respect to source code and specifications.
+- The Frontend fragment is written to `features/expense-crud/plans/plan-v[[VERSION]]-fragment-frontend.md`.
+- The Backend fragment is written to `features/expense-crud/plans/plan-v[[VERSION]]-fragment-backend.md`.
+- All fragment drafting is read-only with respect to source code and specifications.
 
 ---
 
@@ -634,15 +649,14 @@ Use the complexity scoring rubric in `rules/workflow.md §5` to select the workf
 
 ## Summary of All AI Prompts
 
-| File                                           | Role                                                                                              |
-| :--------------------------------------------- | :------------------------------------------------------------------------------------------------ |
-| `.ai/prompts/plan/plan-fe.md`                  | Frontend planning fragment (parallel with `plan-be.md`)                                           |
-| `.ai/prompts/plan/plan-be.md`                  | Backend planning fragment (parallel with `plan-fe.md`)                                            |
-| `.ai/prompts/plan/plan-synthesizer.md`         | Synthesizes fragments into `plan-v<version>.md` and `contract-v<version>.md`                      |
-| `.ai/prompts/plan/plan-review.md`              | Independent pre-approval review of plan and API contract                                          |
-| `.ai/prompts/plan-mode.md`                     | Baseline single-agent plan mode for simple path / low-complexity features                         |
-| `.ai/prompts/build-mode.md`                    | Unified build prompt supporting `Phase: "Frontend"` \| `"Backend"` \| `"Both"` \| `"Integration"` |
-| `.ai/prompts/test/test-build-mode-unit-api.md` | Backend & API integration tests (parallel with UI/E2E)                                            |
-| `.ai/prompts/test/test-build-mode-ui-e2e.md`   | Frontend component & Playwright E2E tests (parallel with Unit/API)                                |
-| `.ai/prompts/diagnosis/diagnosis-mode.md`      | Classifies test/validation failures into 6 categories with concrete routing                       |
-| `.ai/prompts/validation-prompt.md`             | Baseline validation prompt used for Phase 9 final audit and compliance report                     |
+| File                                           | Role                                                                                                   |
+| :--------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
+| `.ai/prompts/plan/plan-fragments.md`           | Unified fragment prompt supporting `Phase: "Frontend"` \| `"Backend"` \| `"Both"` (parallel subagents) |
+| `.ai/prompts/plan/plan-synthesizer.md`         | Synthesizes fragments into `plan-v<version>.md` and `contract-v<version>.md`                           |
+| `.ai/prompts/plan/plan-review.md`              | Independent pre-approval review of plan and API contract                                               |
+| `.ai/prompts/plan-mode.md`                     | Baseline single-agent plan mode for simple path / low-complexity features                              |
+| `.ai/prompts/build-mode.md`                    | Unified build prompt supporting `Phase: "Frontend"` \| `"Backend"` \| `"Both"` \| `"Integration"`      |
+| `.ai/prompts/test/test-build-mode-unit-api.md` | Backend & API integration tests (parallel with UI/E2E)                                                 |
+| `.ai/prompts/test/test-build-mode-ui-e2e.md`   | Frontend component & Playwright E2E tests (parallel with Unit/API)                                     |
+| `.ai/prompts/diagnosis/diagnosis-mode.md`      | Classifies test/validation failures into 6 categories with concrete routing                            |
+| `.ai/prompts/validation-prompt.md`             | Baseline validation prompt used for Phase 9 final audit and compliance report                          |
