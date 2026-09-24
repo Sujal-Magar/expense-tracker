@@ -24,13 +24,20 @@ The Authentication module provides the secure entry point for the FinTrack appli
 
 These libraries are explicitly approved for this feature and are additions to the base stack in `rules/tech-stack.md`. No other new libraries are approved.
 
-| Purpose                                      | Library               | Layer    | Notes                                                      |
-| :------------------------------------------- | :-------------------- | :------- | :--------------------------------------------------------- |
-| Password hashing                             | `argon2`              | Backend  | argon2id variant                                           |
-| JWT signing and verification                 | `jose`                | Backend  | HS256; secret read from `JWT_SECRET` env var               |
-| Google ID-token verification                 | `google-auth-library` | Backend  | Audience checked against `GOOGLE_CLIENT_ID` env var        |
-| Refresh cookie parsing                       | `cookie-parser`       | Backend  | Express middleware                                         |
-| Google sign-in button / ID-token acquisition | `@react-oauth/google` | Frontend | Client ID read from `NEXT_PUBLIC_GOOGLE_CLIENT_ID` env var |
+| Purpose                                      | Library                | Layer    | Notes                                                      |
+| :------------------------------------------- | :--------------------- | :------- | :--------------------------------------------------------- |
+| Password hashing                             | `argon2`               | Backend  | argon2id variant                                           |
+| JWT signing and verification                 | `jose`                 | Backend  | HS256; secret read from `JWT_SECRET` env var               |
+| Google ID-token verification                 | `google-auth-library`  | Backend  | Audience checked against `GOOGLE_CLIENT_ID` env var        |
+| Refresh cookie parsing                       | `cookie-parser`        | Backend  | Express middleware                                         |
+| Refresh cookie parser typings                | `@types/cookie-parser` | Backend  | Dev dependency, types only (required by strict TypeScript) |
+| Google sign-in button / ID-token acquisition | `@react-oauth/google`  | Frontend | Client ID read from `NEXT_PUBLIC_GOOGLE_CLIENT_ID` env var |
+
+Implementation constraints on the approved libraries:
+
+- `jose` must be a 5.x release, because the backend compiles to CommonJS and later majors are ESM-only.
+- `argon2` is a native module. Approving it includes allowing its pnpm build script to run in the workspace.
+- No HTTP test client (e.g. `supertest`) is approved. Backend API tests use Node's global `fetch` against an app started on an ephemeral port.
 
 ## 3. Data Model
 
@@ -123,6 +130,8 @@ Rotation: `POST /auth/refresh` revokes the presented refresh token, issues a new
   1. An account with the token's `googleId` exists → sign that user in.
   2. Otherwise an account with the token's email exists → **link**: set `googleId` on that account (keeping `provider` and any `passwordHash`), then sign in.
   3. Otherwise → create a new account (`provider = "google"`, `passwordHash = null`, `name` from the token) and sign in.
+- **Conflicting Google identity:** if step 2 finds an account whose `googleId` is already set to a _different_ value than the token's, the existing `googleId` is never overwritten. The request is rejected with `401 INVALID_GOOGLE_TOKEN` and no account is changed. No new error code is introduced.
+- **Name resolution for new accounts (step 3):** use the token's `name` claim, trimmed. If it is absent or shorter than 2 characters, use the local part of the email (the text before `@`). If that is also shorter than 2 characters, use `"User"`. This guarantees the `name` minimum in section 5 is always met.
 - Frontend states:
   - Popup dismissed or closed by the user: no error, no toast, no state change.
   - `NEXT_PUBLIC_GOOGLE_CLIENT_ID` missing or the Google script fails to load: show the error toast `"Google sign-in is unavailable."`.
@@ -139,7 +148,7 @@ Password recovery is a two-step flow. No external email service is used (see `ru
 **Step 1: Request.** Clicking `"Forgot your password?"` opens a Radix dialog on the auth card titled `"Reset your password"` with a single email field (mail icon) and a `"SEND RESET LINK"` button. Submitting calls `requestPasswordReset`.
 
 - The backend always responds `200` with the same generic message, `"If an account exists for that email, a reset link has been sent."`, whether or not the email is registered or the account is Google-only (a Google-only account may use this flow to set its first password).
-- If the account exists, the backend creates a `PasswordResetToken` and hands the reset URL `<FRONTEND_ORIGIN>/reset-password?token=<rawToken>` to a `Mailer` port. The only implementation in scope is `ConsoleMailer`, which logs the URL to the server console (development delivery). A production mailer is out of scope.
+- If the account exists, the backend first invalidates (marks used) every earlier unused `PasswordResetToken` for that user, so at most one reset link is valid per user at any time. It then creates a new `PasswordResetToken` and hands the reset URL `<FRONTEND_ORIGIN>/reset-password?token=<rawToken>` to a `Mailer` port. The only implementation in scope is `ConsoleMailer`, which logs the URL to the server console (development delivery). A production mailer is out of scope.
 - On success the dialog replaces the form with the generic message and a `"BACK TO SIGN IN"` button.
 - An invalid email format is shown inline in the dialog and does not call the API.
 
@@ -156,6 +165,7 @@ Password recovery is a two-step flow. No external email service is used (see `ru
 - **Renew:** the frontend refreshes the access token before it expires, or once after a `401 UNAUTHENTICATED` response from any protected endpoint, and retries the original request once. If the refresh fails, the session is cleared and the user is redirected to `/auth`.
 - **Current user:** `GET /auth/me` returns the authenticated user.
 - **End:** `logout` revokes the presented refresh token, clears the cookie, and the frontend discards the in-memory access token and clears cached server state. `logout` succeeds (`200`) even when no valid refresh cookie is present.
+- **Logout control:** the visuals define no logout control, so auth provides a `logout()` capability plus a minimal `"Sign out"` button on the placeholder `/dashboard` page (REQ-AUTH-07). The `dashboard` feature owns the real app shell and its logout control later.
 
 ### REQ-AUTH-07: Protected Route Guard (Frontend)
 
@@ -163,6 +173,8 @@ Password recovery is a two-step flow. No external email service is used (see `ru
 - While the session-restore call is in flight, protected routes render a loading state, never the protected content and never a flash of `/auth`.
 - Unauthenticated access to `/dashboard`, `/transactions`, `/budget`, `/goals`, `/reports` or `/profile` redirects to `/auth`.
 - An authenticated user visiting `/auth` is redirected to `/dashboard`.
+- **Placeholder pages:** the protected layout and the post-login redirect must be verifiable before other features exist. Auth therefore ships a minimal placeholder page at `/dashboard` (inside the protected layout) showing the signed-in user's name and a `"Sign out"` button. The `dashboard` feature replaces this page; the guard and layout remain owned by auth.
+- **Root route:** `/` renders the loading state while the session restores, then redirects to `/dashboard` when authenticated or `/auth` when not. This replaces the existing health-check page at `/`.
 
 ### REQ-AUTH-08: Authentication Middleware (Backend Contract for Other Features)
 
@@ -175,9 +187,41 @@ Password recovery is a two-step flow. No external email service is used (see `ru
 
 - `name`: Must be at least 2 characters long.
 - `email`: Must be a syntactically valid email string (`name@domain.tld`); normalized to lowercase before use.
-- `password`: Must be at least 8 characters long, containing at least one digit and one special character. Applies to sign-up and to the reset-password step.
+- `password`: Must be at least 8 characters long, containing at least one digit and one special character. Applies to sign-up and to the reset-password step. A **special character** is any character that is not an ASCII letter (`A–Z`, `a–z`) or digit (`0–9`); space and underscore count. Sign-in only requires a non-empty password (the strength rule is not applied to existing credentials).
 - `confirmPassword`: Must exactly match the value entered in `password`.
 - Duplicate registration: Registering with an existing email returns `409 EMAIL_ALREADY_EXISTS`.
+
+### Validation Messages
+
+Field messages are defined once, in the shared schemas in `packages/contracts`, and are used verbatim by the frontend (inline) and returned by the backend in `fieldErrors` (first failing rule per field).
+
+| Field             | Rule violated        | Message                                      |
+| :---------------- | :------------------- | :------------------------------------------- |
+| `name`            | empty                | `Name is required.`                          |
+| `name`            | under 2 characters   | `Name must be at least 2 characters.`        |
+| `email`           | empty                | `Email is required.`                         |
+| `email`           | invalid format       | `Enter a valid email address.`               |
+| `password`        | empty                | `Password is required.`                      |
+| `password`        | under 8 characters   | `Password must be at least 8 characters.`    |
+| `password`        | no digit             | `Password must include a number.`            |
+| `password`        | no special character | `Password must include a special character.` |
+| `confirmPassword` | empty                | `Please confirm your password.`              |
+| `confirmPassword` | does not match       | `Passwords do not match.`                    |
+
+The same messages apply to the reset-password fields (New Password → `password`, Confirm New Password → `confirmPassword`).
+
+### Generic Failure Feedback
+
+Failures with no domain code above (network errors, `5xx`, unexpected responses) are handled as follows. Domain-coded failures keep the feedback defined in their own requirements.
+
+| Operation                       | Feedback                                                                                  |
+| :------------------------------ | :---------------------------------------------------------------------------------------- |
+| Sign up                         | Error toast `"Could not create your account. Please try again."`                          |
+| Sign in                         | Error toast `"Could not sign in. Please try again."`                                      |
+| Google sign-in (backend call)   | Error toast `"Google sign-in failed. Please try again."` (same as `INVALID_GOOGLE_TOKEN`) |
+| Request password reset          | Inline dialog error `"Could not send the reset link. Please try again."`                  |
+| Reset password (non-`400`)      | Inline form error `"Could not reset your password. Please try again."`                    |
+| Session restore (network/`5xx`) | Treated as unauthenticated; no toast                                                      |
 
 ## 6. API / Interface Specification
 
@@ -201,14 +245,14 @@ All endpoints are prefixed `/api/v1/auth` and are defined in `packages/contracts
 
 ### Error Responses
 
-| Status | `code`                 | When                                                                                   |
-| :----- | :--------------------- | :------------------------------------------------------------------------------------- |
-| `400`  | `VALIDATION_ERROR`     | Request body fails validation (includes `fieldErrors`)                                 |
-| `400`  | `INVALID_RESET_TOKEN`  | Reset token is unknown, expired or already used                                        |
-| `401`  | `INVALID_CREDENTIALS`  | `login` failure (unknown email, wrong password, or account without a password)         |
-| `401`  | `INVALID_GOOGLE_TOKEN` | Google ID token fails verification or has an unverified email                          |
-| `401`  | `UNAUTHENTICATED`      | Missing/invalid/expired access token, or missing/invalid/revoked/expired refresh token |
-| `409`  | `EMAIL_ALREADY_EXISTS` | `register` with an email that already has an account                                   |
+| Status | `code`                 | When                                                                                                                                 |
+| :----- | :--------------------- | :----------------------------------------------------------------------------------------------------------------------------------- |
+| `400`  | `VALIDATION_ERROR`     | Request body fails validation (includes `fieldErrors`)                                                                               |
+| `400`  | `INVALID_RESET_TOKEN`  | Reset token is unknown, expired or already used                                                                                      |
+| `401`  | `INVALID_CREDENTIALS`  | `login` failure (unknown email, wrong password, or account without a password)                                                       |
+| `401`  | `INVALID_GOOGLE_TOKEN` | Google ID token fails verification, has an unverified email, or conflicts with the `googleId` already linked to that email's account |
+| `401`  | `UNAUTHENTICATED`      | Missing/invalid/expired access token, or missing/invalid/revoked/expired refresh token                                               |
+| `409`  | `EMAIL_ALREADY_EXISTS` | `register` with an email that already has an account                                                                                 |
 
 ## 7. Acceptance Criteria
 
