@@ -1,215 +1,120 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" width="1200" height="780">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 660" width="1100" height="660">
   <defs>
-    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#090d16"/>
-      <stop offset="50%" stop-color="#0f172a"/>
-      <stop offset="100%" stop-color="#0b1120"/>
-    </linearGradient>
-
-    <linearGradient id="parent-card-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e293b"/>
-      <stop offset="100%" stop-color="#0f172a"/>
-    </linearGradient>
-
-    <linearGradient id="sub-card-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#182234"/>
-      <stop offset="100%" stop-color="#0b1322"/>
-    </linearGradient>
-
-    <linearGradient id="output-card-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#064e3b"/>
-      <stop offset="100%" stop-color="#022c22"/>
-    </linearGradient>
-
-    <linearGradient id="blue-cyan-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#38bdf8"/>
-      <stop offset="100%" stop-color="#818cf8"/>
-    </linearGradient>
-
-    <linearGradient id="emerald-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#34d399"/>
-      <stop offset="100%" stop-color="#10b981"/>
-    </linearGradient>
-
-    <linearGradient id="amber-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#fbbf24"/>
-      <stop offset="100%" stop-color="#f59e0b"/>
-    </linearGradient>
-
-    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
-
-    <filter id="shadow-card" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
-    </filter>
-
-    <marker id="arrow-cyan" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb" />
     </marker>
-
-    <marker id="arrow-emerald" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 1 L 10 5 L 0 9 z" fill="#34d399" />
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669" />
     </marker>
   </defs>
 
-  <!-- Background -->
-  <rect width="1200" height="780" fill="url(#bg-grad)" rx="16"/>
+  <!-- Clean Canvas Background -->
+  <rect width="1100" height="660" fill="#ffffff" />
+  <rect x="0.5" y="0.5" width="1099" height="659" fill="none" stroke="#e2e8f0" stroke-width="1" rx="8" />
 
-  <!-- Subtle grid dots pattern -->
-  <g opacity="0.08">
-    <circle cx="100" cy="100" r="1.5" fill="#ffffff"/>
-    <circle cx="200" cy="100" r="1.5" fill="#ffffff"/>
-    <circle cx="300" cy="100" r="1.5" fill="#ffffff"/>
-    <circle cx="400" cy="100" r="1.5" fill="#ffffff"/>
-    <circle cx="500" cy="100" r="1.5" fill="#ffffff"/>
-    <circle cx="600" cy="100" r="1.5" fill="#ffffff"/>
-    <circle cx="700" cy="100" r="1.5" fill="#ffffff"/>
-    <circle cx="800" cy="100" r="1.5" fill="#ffffff"/>
-    <circle cx="900" cy="100" r="1.5" fill="#ffffff"/>
-    <circle cx="1000" cy="100" r="1.5" fill="#ffffff"/>
-    <circle cx="1100" cy="100" r="1.5" fill="#ffffff"/>
+  <!-- Header -->
+  <g transform="translate(50, 45)">
+    <text x="0" y="0" fill="#0f172a" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="700" letter-spacing="-0.3">Sub-Agent Pattern: Within-Phase Parallel Execution</text>
+    <text x="0" y="24" fill="#64748b" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13">Orchestrator fanning out Frontend &amp; Backend workers when Phase = Both (e.g., Phase 1 &amp; Phase 5)</text>
   </g>
 
-  <!-- Header Section -->
-  <g transform="translate(60, 50)">
-    <rect x="0" y="0" width="130" height="26" rx="13" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
-    <text x="65" y="17" fill="#38bdf8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="0.8">SYSTEM PATTERN</text>
-    <text x="0" y="56" fill="#f8fafc" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="800" letter-spacing="-0.5">Hierarchical Multi-Agent: Sub-Agent Architecture</text>
-    <text x="0" y="82" fill="#94a3b8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="400">As shown in the Antigravity IDE "Agent Map": Orchestrator delegating isolated exploratory tasks</text>
+  <!-- ISOLATED SUB-AGENT CONTAINER (Right) -->
+  <g transform="translate(530, 110)">
+    <rect x="0" y="0" width="520" height="410" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 4" />
+    <rect x="16" y="-11" width="220" height="22" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" />
+    <text x="126" y="4" fill="#475569" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600" text-anchor="middle">SUBAGENT ISOLATION BOUNDARY</text>
+
+    <!-- Context Protection Note -->
+    <g transform="translate(20, 350)">
+      <rect x="0" y="0" width="480" height="42" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+      <text x="14" y="25" fill="#475569" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">
+        <tspan font-weight="600" fill="#0f172a">Context &amp; Concurrency Rules:</tspan> Subagents never read peer reasoning; cannot write to activity-log.
+      </text>
+    </g>
   </g>
 
-  <!-- ISOLATED SUB-AGENT CONTEXT BOUNDARY (Dashed container on right) -->
-  <g transform="translate(560, 160)">
-    <rect x="0" y="0" width="580" height="460" rx="16" fill="#0c1322" stroke="#334155" stroke-width="1.5" stroke-dasharray="6 6"/>
-    <rect x="24" y="-12" width="230" height="24" rx="12" fill="#1e293b" stroke="#475569" stroke-width="1"/>
-    <text x="139" y="4" fill="#94a3b8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="0.5">ISOLATED SUB-AGENT CONTEXT</text>
-
-    <!-- Context Isolation Callout Box -->
-    <rect x="30" y="380" width="520" height="60" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-    <circle cx="54" cy="410" r="14" fill="#0ea5e9" opacity="0.2"/>
-    <text x="54" y="415" fill="#38bdf8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="800" text-anchor="middle">i</text>
-    <text x="80" y="405" fill="#e2e8f0" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">Context Window Protection</text>
-    <text x="80" y="423" fill="#94a3b8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">Sub-agents absorbed 119.7k tokens of noisy file searching without polluting parent memory.</text>
-  </g>
-
-  <!-- PARENT / ORCHESTRATOR AGENT CARD (Left) -->
-  <g transform="translate(60, 240)" filter="url(#shadow-card)">
-    <!-- Glow border -->
-    <rect x="-2" y="-2" width="384" height="294" rx="18" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.6"/>
-    <!-- Card Body -->
-    <rect x="0" y="0" width="380" height="290" rx="16" fill="url(#parent-card-grad)" stroke="#334155" stroke-width="1"/>
+  <!-- ORCHESTRATING AGENT (Left) -->
+  <g transform="translate(50, 150)">
+    <rect x="0" y="0" width="360" height="295" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5" />
     
-    <!-- Top badge -->
-    <rect x="24" y="24" width="140" height="24" rx="6" fill="#0284c7" opacity="0.25"/>
-    <circle cx="36" cy="36" r="4" fill="#38bdf8"/>
-    <text x="46" y="40" fill="#38bdf8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="0.5">PARENT AGENT</text>
+    <rect x="20" y="20" width="160" height="22" rx="4" fill="#eff6ff" />
+    <text x="28" y="35" fill="#2563eb" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700">ORCHESTRATING AGENT</text>
 
-    <!-- Title -->
-    <text x="24" y="80" fill="#f8fafc" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="800">Auth Feature Plan</text>
-    <text x="24" y="102" fill="#94a3b8" font-family="JetBrainsMono Nerd Font, Adwaita Mono, monospace" font-size="12">Model: Claude 3.5 Sonnet</text>
-    <text x="24" y="120" fill="#64748b" font-family="JetBrainsMono Nerd Font, Adwaita Mono, monospace" font-size="12">Context: 55.9k tokens active</text>
+    <text x="20" y="74" fill="#0f172a" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="17" font-weight="700">Primary Phase Session</text>
+    <text x="20" y="96" fill="#64748b" font-family="JetBrainsMono Nerd Font, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="12">Reads fds.md frontmatter only</text>
 
-    <!-- Divider -->
-    <line x1="24" y1="138" x2="356" y2="138" stroke="#334155" stroke-width="1"/>
+    <line x1="20" y1="116" x2="340" y2="116" stroke="#f1f5f9" stroke-width="1.5" />
 
-    <!-- Responsibilities -->
-    <text x="24" y="162" fill="#cbd5e1" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">CORE RESPONSIBILITIES:</text>
+    <text x="20" y="142" fill="#334155" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600">Playbook Responsibilities:</text>
     
-    <g transform="translate(24, 180)">
-      <circle cx="6" cy="6" r="3" fill="#38bdf8"/>
-      <text x="18" y="10" fill="#94a3b8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Deconstructs feature into frontend &amp; backend</text>
-    </g>
-    <g transform="translate(24, 204)">
-      <circle cx="6" cy="6" r="3" fill="#38bdf8"/>
-      <text x="18" y="10" fill="#94a3b8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Spawns 2 focused subagents in parallel</text>
-    </g>
-    <g transform="translate(24, 228)">
-      <circle cx="6" cy="6" r="3" fill="#38bdf8"/>
-      <text x="18" y="10" fill="#94a3b8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Synthesizes returned fragments into final plan</text>
-    </g>
-
-    <!-- Status pill -->
-    <rect x="24" y="252" width="90" height="20" rx="10" fill="#10b981" opacity="0.15"/>
-    <circle cx="34" cy="262" r="3" fill="#34d399"/>
-    <text x="44" y="266" fill="#34d399" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700">COORDINATING</text>
+    <text x="20" y="168" fill="#64748b" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">• Keeps context small (avoids reading full specs)</text>
+    <text x="20" y="192" fill="#64748b" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">• Launches 2 parallel subagents in single turn</text>
+    <text x="20" y="216" fill="#64748b" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">• Verifies output files exist upon return</text>
+    <text x="20" y="240" fill="#64748b" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">• Appends both lines to activity-log.md</text>
+    <text x="20" y="264" fill="#64748b" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">• Terminates; does NOT run Synthesizer</text>
   </g>
 
   <!-- SUB-AGENT 1: FRONTEND (Top Right) -->
-  <g transform="translate(600, 195)" filter="url(#shadow-card)">
-    <rect x="0" y="0" width="500" height="155" rx="14" fill="url(#sub-card-grad)" stroke="#38bdf8" stroke-width="1.2"/>
+  <g transform="translate(560, 140)">
+    <rect x="0" y="0" width="460" height="125" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
     
-    <!-- Header -->
-    <rect x="20" y="16" width="110" height="22" rx="5" fill="#0284c7" opacity="0.2"/>
-    <text x="28" y="31" fill="#38bdf8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700">SUB-AGENT #1</text>
-
-    <text x="20" y="62" fill="#f8fafc" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="17" font-weight="800">Draft Frontend Plan Fragment</text>
+    <text x="20" y="30" fill="#2563eb" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700">SUBAGENT 1 (EPHEMERAL)</text>
+    <text x="20" y="54" fill="#0f172a" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700">Frontend Subagent</text>
     
-    <!-- Metrics chip -->
-    <rect x="360" y="18" width="120" height="24" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-    <text x="420" y="34" fill="#fbbf24" font-family="JetBrainsMono Nerd Font, Adwaita Mono, monospace" font-size="10" font-weight="600" text-anchor="middle">1m 13s • 65.1k tokens</text>
+    <rect x="330" y="14" width="114" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+    <text x="387" y="28" fill="#64748b" font-family="JetBrainsMono Nerd Font, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="10.5" text-anchor="middle">Write-Capable</text>
 
-    <line x1="20" y1="80" x2="480" y2="80" stroke="#1e293b" stroke-width="1"/>
-
-    <text x="20" y="102" fill="#94a3b8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Scoped Mission: Reads UI specs, tailwind config, signin/signup mockups</text>
-    <text x="20" y="122" fill="#94a3b8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Produces: <tspan fill="#38bdf8" font-family="JetBrainsMono Nerd Font, Adwaita Mono, monospace">plan-v1.0.0-fragment-frontend.md</tspan></text>
-    <text x="20" y="140" fill="#64748b" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">Status: Terminates upon returning draft to Parent</text>
+    <text x="20" y="80" fill="#475569" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Inputs: fds.md, behavior.md, visuals/, frontend/src</text>
+    <text x="20" y="99" fill="#475569" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Scope: UI components, mock data shapes, client state, interaction UX</text>
+    <text x="20" y="117" fill="#64748b" font-family="JetBrainsMono Nerd Font, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11">Target: v[[VERSION]]/fragments/frontend.md (or frontend/ build)</text>
   </g>
 
   <!-- SUB-AGENT 2: BACKEND (Bottom Right) -->
-  <g transform="translate(600, 375)" filter="url(#shadow-card)">
-    <rect x="0" y="0" width="500" height="155" rx="14" fill="url(#sub-card-grad)" stroke="#818cf8" stroke-width="1.2"/>
+  <g transform="translate(560, 285)">
+    <rect x="0" y="0" width="460" height="125" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
     
-    <!-- Header -->
-    <rect x="20" y="16" width="110" height="22" rx="5" fill="#4338ca" opacity="0.3"/>
-    <text x="28" y="31" fill="#a5b4fc" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700">SUB-AGENT #2</text>
-
-    <text x="20" y="62" fill="#f8fafc" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="17" font-weight="800">Draft Backend Plan Fragment</text>
+    <text x="20" y="30" fill="#2563eb" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700">SUBAGENT 2 (EPHEMERAL)</text>
+    <text x="20" y="54" fill="#0f172a" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700">Backend Subagent</text>
     
-    <!-- Metrics chip -->
-    <rect x="360" y="18" width="120" height="24" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-    <text x="420" y="34" fill="#fbbf24" font-family="JetBrainsMono Nerd Font, Adwaita Mono, monospace" font-size="10" font-weight="600" text-anchor="middle">38s • 54.6k tokens</text>
+    <rect x="330" y="14" width="114" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" />
+    <text x="387" y="28" fill="#64748b" font-family="JetBrainsMono Nerd Font, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="10.5" text-anchor="middle">Write-Capable</text>
 
-    <line x1="20" y1="80" x2="480" y2="80" stroke="#1e293b" stroke-width="1"/>
-
-    <text x="20" y="102" fill="#94a3b8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Scoped Mission: Audits DB schema, token rotation, sessions &amp; API routes</text>
-    <text x="20" y="122" fill="#94a3b8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Produces: <tspan fill="#a5b4fc" font-family="JetBrainsMono Nerd Font, Adwaita Mono, monospace">plan-v1.0.0-fragment-backend.md</tspan></text>
-    <text x="20" y="140" fill="#64748b" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">Status: Terminates upon returning draft to Parent</text>
+    <text x="20" y="80" fill="#475569" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Inputs: fds.md, backend/src, packages/contracts/src</text>
+    <text x="20" y="99" fill="#475569" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Scope: Drizzle schemas, repository methods, service logic, routes</text>
+    <text x="20" y="117" fill="#64748b" font-family="JetBrainsMono Nerd Font, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11">Target: v[[VERSION]]/fragments/backend.md (or backend/ build)</text>
   </g>
 
-  <!-- CONNECTING PATHWAYS (Curved lines with labels) -->
-  <!-- Parent to Sub 1 (Top outward) -->
-  <path d="M 440 320 C 510 320, 520 270, 592 270" fill="none" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrow-cyan)"/>
-  <rect x="465" y="275" width="105" height="20" rx="4" fill="#0f172a" stroke="#38bdf8" stroke-width="0.8"/>
-  <text x="517" y="289" fill="#38bdf8" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="700" text-anchor="middle">1. Delegate Task</text>
+  <!-- FLOW PATHWAYS -->
+  <!-- 1. Launch Frontend Subagent -->
+  <path d="M 410 205 C 470 205, 485 185, 552 185" fill="none" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <rect x="445" y="173" width="80" height="18" rx="3" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="485" y="186" fill="#2563eb" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="600" text-anchor="middle">1. Roll Up</text>
 
-  <!-- Sub 1 back to Parent (Top inward) -->
-  <path d="M 592 290 C 530 290, 510 345, 448 345" fill="none" stroke="#34d399" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow-emerald)"/>
-  <rect x="470" y="325" width="100" height="20" rx="4" fill="#0f172a" stroke="#34d399" stroke-width="0.8"/>
-  <text x="520" y="339" fill="#34d399" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="700" text-anchor="middle">2. Return Draft</text>
+  <!-- 2. Return Frontend Fragment -->
+  <path d="M 552 205 C 495 205, 480 225, 418 225" fill="none" stroke="#059669" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-green)" />
+  <rect x="445" y="221" width="80" height="18" rx="3" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="485" y="234" fill="#059669" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="600" text-anchor="middle">2. Return File</text>
 
-  <!-- Parent to Sub 2 (Bottom outward) -->
-  <path d="M 440 430 C 510 430, 520 450, 592 450" fill="none" stroke="#818cf8" stroke-width="2.5" marker-end="url(#arrow-cyan)"/>
-  <rect x="465" y="425" width="105" height="20" rx="4" fill="#0f172a" stroke="#818cf8" stroke-width="0.8"/>
-  <text x="517" y="439" fill="#a5b4fc" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="700" text-anchor="middle">1. Delegate Task</text>
+  <!-- 1. Launch Backend Subagent -->
+  <path d="M 410 345 C 470 345, 485 330, 552 330" fill="none" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrow-blue)" />
+  <rect x="445" y="322" width="80" height="18" rx="3" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="485" y="335" fill="#2563eb" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="600" text-anchor="middle">1. Roll Up</text>
 
-  <!-- Sub 2 back to Parent (Bottom inward) -->
-  <path d="M 592 470 C 530 470, 510 455, 448 455" fill="none" stroke="#34d399" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow-emerald)"/>
-  <rect x="470" y="475" width="100" height="20" rx="4" fill="#0f172a" stroke="#34d399" stroke-width="0.8"/>
-  <text x="520" y="489" fill="#34d399" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="700" text-anchor="middle">2. Return Draft</text>
+  <!-- 2. Return Backend Fragment -->
+  <path d="M 552 355 C 495 355, 480 375, 418 375" fill="none" stroke="#059669" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arrow-green)" />
+  <rect x="445" y="370" width="80" height="18" rx="3" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="485" y="383" fill="#059669" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9" font-weight="600" text-anchor="middle">2. Return File</text>
 
-  <!-- BOTTOM OUTPUT ARTIFACT (Consolidated Result) -->
-  <g transform="translate(60, 650)">
-    <rect x="0" y="0" width="1080" height="85" rx="12" fill="url(#output-card-grad)" stroke="#10b981" stroke-width="1.5" filter="url(#shadow-card)"/>
-    <circle cx="45" cy="42" r="18" fill="#10b981" opacity="0.3"/>
-    <path d="M 37 42 L 42 47 L 53 36" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round"/>
-    
-    <text x="80" y="34" fill="#f8fafc" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800">Final Deliverable: Unified Feature Plan &amp; Contract Synthesis</text>
-    <text x="80" y="56" fill="#a7f3d0" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13">Parent Agent merges frontend &amp; backend fragments into <tspan font-family="JetBrainsMono Nerd Font, Adwaita Mono, monospace" font-weight="700" fill="#ffffff">features/auth/plans/plan-v1.0.0.md</tspan> — clean, unified, and reviewed.</text>
-    
-    <!-- Tag on right -->
-    <rect x="940" y="28" width="110" height="28" rx="6" fill="#065f46" stroke="#34d399" stroke-width="1"/>
-    <text x="995" y="46" fill="#34d399" font-family="Noto Sans, Adwaita Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="800" text-anchor="middle">PHASE 4 READY</text>
+  <!-- AUDIT LOG COMPLETION (Bottom bar) -->
+  <g transform="translate(50, 550)">
+    <rect x="0" y="0" width="1000" height="60" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />
+    <circle cx="28" cy="30" r="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.2" />
+    <path d="M 24 30 L 27 33 L 33 26" fill="none" stroke="#059669" stroke-width="1.5" stroke-linecap="round" />
+
+    <text x="50" y="27" fill="#0f172a" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700">Audit Trail: features/[[FEATURE]]/plans/activity-log.md</text>
+    <text x="50" y="45" fill="#64748b" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">Orchestrator records both completion entries post-execution to avoid concurrent file write races.</text>
+
+    <rect x="880" y="16" width="100" height="28" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+    <text x="930" y="34" fill="#059669" font-family="Noto Sans, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" text-anchor="middle">PHASE 1 PASS</text>
   </g>
 </svg>

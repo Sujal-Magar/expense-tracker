@@ -1,98 +1,120 @@
-# Understanding Multi-Agent Systems & Sub-Agents
+# Multi-Agent Workflow vs. Sub-Agents: Project Architecture Guide
 
-This guide provides a straightforward explanation of **Multi-Agent Systems** versus **Sub-Agents**, using the exact workflow seen during feature planning in our IDE.
-
----
-
-## 1. The 30-Second Summary
-
-- **Multi-Agent System** is the **architecture/ecosystem**: Any setup where two or more AI agents operate, communicate, or divide labor.
-- **Sub-Agent** is a **delegation pattern**: An ephemeral child agent created by a parent/lead agent to solve a single scoped task and report back.
-
-> **Key Rule of Thumb:** Every sub-agent workflow is a multi-agent system, but not every multi-agent system uses sub-agents.
+This document clarifies the concepts of **Multi-Agent Systems (MAS)** and **Sub-Agents** as implemented in our repository's **Staged Dual-Validation Workflow with Multi-Agent Parallel Execution** (`WORKFLOW_PLAYBOOK.md` and `.ai/prompts/`).
 
 ---
 
-## 2. Visual Architecture Diagrams
+## 1. Executive Summary: Core Distinction in Our Project
 
-### Diagram 1: Hierarchical Multi-Agent (The Sub-Agent Pattern)
-*This maps directly to our Antigravity IDE "Agent Map" execution where the Auth Feature Plan delegates to frontend and backend workers:*
+| Concept                  | Scope in This Repository                                                 | Key Responsibility                                                                                                                                       | Lifecycle                                                                                                                                                      |
+| :----------------------- | :----------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Multi-Agent Workflow** | The **Cross-Phase Pipeline** (Phases 0 through 9)                        | The overall system where independent AI agent sessions execute specialized roles across the feature lifecycle.                                           | Distinct agent sessions per phase (e.g. Plan Drafter $\rightarrow$ Plan Synthesizer $\rightarrow$ Plan Reviewer $\rightarrow$ Builders $\rightarrow$ Testers). |
+| **Sub-Agent Pattern**    | The **Within-Phase Parallelism** (Phase 1 & Phase 5 with `Phase = Both`) | An ephemeral child worker spawned concurrently by the primary phase agent (Orchestrator) to handle a single decoupled layer (`frontend/` or `backend/`). | **Ephemeral**: Spawned together in a single turn, drafts or builds its bounded scope, and terminates immediately upon return.                                  |
 
-![Hierarchical Sub-Agent Delegation Flow](diagrams/hierarchical_subagent_architecture.png)
-
-#### Why this works so well:
-1. **Context Window Protection:**
-   The frontend sub-agent spent **65.1k tokens** inspecting Tailwind configurations, mockups, and routes. The backend sub-agent spent **54.6k tokens** scanning Prisma schemas and auth routes. **None of that raw exploration noise polluted the Parent Agent's context.**
-2. **Parallel Execution:**
-   Both investigations ran simultaneously, cutting total planning time in half.
-3. **Clean Synthesis:**
-   The parent agent only received the synthesized Markdown fragments, allowing it to produce the final `plan-v1.0.0.md` with high precision.
+> **Key Rule:**  
+> The overall project lifecycle is a **Multi-Agent Workflow**. Within specific phases (Phase 1 Planning and Phase 5 Build), the orchestrator can roll up **Sub-Agents** to execute parallel work.
 
 ---
 
-### Diagram 2: Peer-to-Peer Multi-Agent (Debate & Consensus)
-*An alternative multi-agent pattern where agents are equals without a parent-child hierarchy:*
+## 2. Architectural Topologies in Our Playbook
 
-![Peer-to-Peer Multi-Agent Architecture](diagrams/peertopeer_multiagent_architecture.png)
+### Pattern 1: Sub-Agent Execution (Within-Phase Parallelism)
 
-#### Key characteristics:
-- **No hierarchy:** Neither agent manages or terminates the other.
-- **Iterative debate:** Agent A (Architect) proposes changes; Agent B (Security) challenges vulnerabilities.
-- **Consensus delivery:** Output is published only when both peers agree.
+_Triggered when `Phase = Both` is supplied to `.ai/prompts/plan/plan-fragments.md` or `.ai/prompts/build-mode.md`:_
 
----
+![Sub-Agent Execution Pattern](diagrams/hierarchical_subagent_architecture.png)
 
-### Diagram 3: Conceptual Taxonomy (The Ecosystem Overview)
-*How the different patterns fit into the broader Multi-Agent umbrella:*
+#### Operational Rules for Sub-Agents (from `plan-fragments.md` & `WORKFLOW_PLAYBOOK.md`):
 
-![Multi-Agent vs Sub-Agent Concept Matrix](diagrams/multiagent_vs_subagent_concept.png)
-
----
-
-## 3. Comparison Cheat Sheet
-
-| Feature | Multi-Agent System (Architecture) | Sub-Agent (Role & Pattern) |
-| :--- | :--- | :--- |
-| **Scope** | Umbrella category for all $\ge 2$ agent setups | Specific hierarchical child worker |
-| **Authority** | Can be peer-to-peer, sequential, or hierarchical | Subordinate (reports strictly to parent) |
-| **Lifecycle** | Can be permanent, long-lived, or stateful | Ephemeral (spawns, completes, terminates) |
-| **User Interaction** | Can interface directly with developers | Hidden from user; reports only to parent agent |
-| **Memory / Context** | Distributed or independent | Isolated sandbox to avoid token bloat |
+1. **Context Window Hygiene:**
+   - The **Orchestrating Agent** reads _only_ `features/[[FEATURE]]/fds.md` frontmatter to determine the version, keeping its primary context small.
+   - It delegates deep file searches, component inspections, and schema audits to the subagents.
+2. **Context Isolation:**
+   - Neither subagent sees the other subagent's prompt, reasoning, or drafted output.
+   - Each subagent operates strictly within its assigned boundary:
+     - **Frontend Subagent**: Scoped strictly to `features/[[FEATURE]]/fds.md`, `behavior.md`, `visuals/`, and `frontend/src`.
+     - **Backend Subagent**: Scoped strictly to `features/[[FEATURE]]/fds.md`, `backend/src`, and `packages/contracts/src`.
+3. **Concurrency & Race-Condition Safety:**
+   - Subagents MUST NOT write to `features/[[FEATURE]]/plans/activity-log.md` (concurrent writes could race and corrupt the log).
+   - The Orchestrating Agent appends both activity log entries _after_ both subagents have returned.
+4. **Scope Termination:**
+   - The Orchestrating Agent verifies that both fragment files exist and are non-empty. It does **not** synthesize the fragments (synthesis is Phase 2, an independent agent).
 
 ---
 
-## 4. FAQ for Developers
+### Pattern 2: Multi-Agent Staged Pipeline (Cross-Phase Separation of Concerns)
 
-### Q1: Is a sub-agent a different LLM model?
-Not necessarily. In our screenshot, the parent (`Auth feature plan`) ran Claude 3.5 Sonnet, and both sub-agents also ran Claude 3.5 Sonnet. A sub-agent simply runs in its own isolated context thread.
+_Handoffs across independent agent sessions during planning and review (Phases 1–4):_
 
-### Q2: When should we use sub-agents?
-Use sub-agents whenever a task requires extensive exploration across decoupled boundaries (e.g., investigating UI styles vs. reviewing database tables), or when parallel research speeds up the deliverable.
+![Multi-Agent Staged Pipeline](diagrams/peertopeer_multiagent_architecture.png)
 
-### Q3: When should we avoid sub-agents?
-For small, atomic tasks (e.g., updating a single function or correcting a type definition), spawning sub-agents adds unnecessary delegation overhead.
+#### Why Independent Agent Sessions Are Required:
+
+- **Phase 1 (Plan Fragments):** Orchestrator rolls up Frontend and Backend subagents to draft independent, uncompromised intent fragments.
+- **Phase 2 (Plan Synthesizer):** A fresh AI session (`.ai/prompts/plan/plan-synthesizer.md`) merges both fragments into `v[[VERSION]]/plan.md` and formalizes `v[[VERSION]]/contract.md`.
+- **Phase 3 (Plan Review):** An **independent, read-only AI agent** (`.ai/prompts/plan/plan-review.md`) audits the plan against `rules/*` and `features/[[FEATURE]]/fds.md`.
+  - **Strict Rule:** The reviewer is forbidden from reading prior chat transcripts or reasoning sessions. It judges the plan solely on the written text to guarantee objective review before developer sign-off.
+- **Phase 4 (Developer Approval Gate):** The human developer confirms the review findings and commits the frozen plan and API contract before build mode starts.
 
 ---
 
-## 5. Authoritative External References & Academic Research
+### Pattern 3: Playbook Architecture Taxonomy
 
-These concepts are backed by official engineering frameworks and peer-reviewed AI research:
+_How multi-agent phases, subagent fan-outs, and single-agent fallback relate in our repository:_
 
-### 1. Industry Engineering Guides & Architectures
-* **Anthropic — [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)** (Dec 2024)
-  * *Key Contribution:* Formalizes the **Orchestrator-Workers** workflow. Recommends against monolithic "all-knowing" agents in favor of a central lead orchestrator dynamically assigning sub-tasks to bounded workers to preserve clarity and prevent context saturation.
-* **LangChain / LangGraph — [Multi-Agent Architectures](https://langchain-ai.github.io/langgraph/concepts/multi_agent/)**
-  * *Key Contribution:* Documents the **Supervisor & Hierarchical Teams** pattern vs. **Multi-Agent Network / Collaboration**. Explains state containment, subgraphs-as-teams, and tool-based handoffs.
-* **OpenAI — [Orchestrating Agents with Routines & Handoffs](https://cookbook.openai.com/examples/orchestrating_agents)** / [OpenAI Agents SDK](https://github.com/openai/openai-agents-python)
-  * *Key Contribution:* Demonstrates lightweight delegation primitives ("handoffs") between specialized, stateless agents.
+![Playbook Architecture Taxonomy](diagrams/multiagent_vs_subagent_concept.png)
+
+---
+
+## 3. Comparison Matrix: Workflow vs. Sub-Agents
+
+| Dimension             | Multi-Agent Workflow (The System)                                                | Sub-Agent (Within-Phase Pattern)                                   |
+| :-------------------- | :------------------------------------------------------------------------------- | :----------------------------------------------------------------- |
+| **Where Defined**     | `WORKFLOW_PLAYBOOK.md` (Phases 0 through 9)                                      | `.ai/prompts/plan/plan-fragments.md` & `.ai/prompts/build-mode.md` |
+| **Execution Scope**   | Across entire feature lifecycle                                                  | Within a single phase run (`Phase = Both`)                         |
+| **Session Boundary**  | Distinct, fresh sessions per phase                                               | Child threads rolled up in a single turn by the phase session      |
+| **Subordinate Role**  | None; each phase agent has specialized authority (e.g. Reviewer can fail a plan) | Subordinate to Orchestrator; completes task and returns file       |
+| **Context Access**    | Forbidden from reading predecessor transcripts                                   | Isolated; cannot read peer subagent output                         |
+| **Commit / Log Rule** | Stages phase-owned paths; writes to `activity-log.md`                            | Forbidden from writing `activity-log.md`; orchestrator writes log  |
+
+---
+
+## 4. When to Use Sub-Agents vs. Single-Agent ("Pragmatic Choice")
+
+As documented in `WORKFLOW_PLAYBOOK.md` (Section: _When to Use the Simple Path Instead_):
+
+### Use Sub-Agents (`Phase = Both`):
+
+- For complex, standard features where parallel frontend and backend exploration cuts session time.
+- When remaining session token limits are sufficient for a parallel fan-out.
+
+### Use Single-Agent Mode (`Phase = Frontend` or `Phase = Backend`):
+
+- **Pragmatic Choice (Low Tokens):** Run a single focused agent on one layer without spawning subagents.
+- **Simple Features:** Small, single-layer changes do not require multi-agent fan-out or subagent overhead.
+
+---
+
+## 5. Authoritative References & Academic Research
+
+The architectural separation between orchestrators, subagents, and staged verification in our playbook aligns with industry frameworks and research:
+
+### 1. Industry Engineering Blueprints
+
+- **Anthropic — [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)** (Dec 2024)
+  - _Key Principle:_ Formalizes the **Orchestrator-Workers** workflow. Recommends against monolithic agents; establishes that bounded worker subagents preserve context hygiene and maintain predictability.
+- **LangChain / LangGraph — [Multi-Agent Architectures](https://langchain-ai.github.io/langgraph/concepts/multi_agent/)**
+  - _Key Principle:_ Explains the **Supervisor & Hierarchical Teams** pattern, subgraphs-as-workers, and handoffs between independent stages.
+- **OpenAI — [Orchestrating Agents with Routines & Handoffs](https://cookbook.openai.com/examples/orchestrating_agents)** / [OpenAI Agents SDK](https://github.com/openai/openai-agents-python)
+  - _Key Principle:_ Formalizes stateless delegation and role-specialized agent handoffs.
 
 ### 2. Peer-Reviewed Academic Research Papers
-* **Multi-Agent Debate & Consensus:**
-  * **[Improving Factuality and Reasoning in Language Models through Multiagent Debate](https://arxiv.org/abs/2305.14325)** (Du et al., MIT & Google, ICML 2024)
-  * *Finding:* Demonstrates that peer-to-peer multi-agent debate loops reduce hallucinations and significantly outperform single-agent reasoning on complex problems.
-* **Multi-Agent Frameworks & Collaborative Coding:**
-  * **[AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation](https://arxiv.org/abs/2308.08155)** (Wu et al., Microsoft Research, 2023)
-  * *Finding:* Establishes conversable agents collaborating through programmable multi-agent conversation patterns.
-  * **[MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework](https://arxiv.org/abs/2308.00352)** (Hong et al., ICLR 2024)
-  * *Finding:* Models software engineering teams by assigning distinct Standard Operating Procedures (SOPs) to simulated roles (Architect, Engineer, QA).
 
+- **Multi-Agent Evaluation & Audit:**
+  - **[Improving Factuality and Reasoning in Language Models through Multiagent Debate](https://arxiv.org/abs/2305.14325)** (Du et al., MIT & Google DeepMind, ICML 2024)
+  - _Finding:_ Independent multi-agent evaluation (like our Phase 3 Plan Review) prevents single-agent blindspots and reduces hallucinations.
+- **Multi-Agent Frameworks for Software Engineering:**
+  - **[AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation](https://arxiv.org/abs/2308.08155)** (Wu et al., Microsoft Research, 2023)
+  - _Finding:_ Establishes multi-agent task partitioning and structured conversational handoffs.
+  - **[MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework](https://arxiv.org/abs/2308.00352)** (Hong et al., ICLR 2024)
+  - _Finding:_ Proves that assigning distinct Standard Operating Procedures (SOPs) across specialized agent phases (Spec $\rightarrow$ Plan $\rightarrow$ Code $\rightarrow$ Review) significantly increases software quality.
