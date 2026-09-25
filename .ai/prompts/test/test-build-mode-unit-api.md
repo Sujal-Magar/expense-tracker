@@ -23,7 +23,7 @@ Do NOT write frontend component tests or E2E/Playwright specs — those belong e
 Read `features/<feature>/index.json` to locate:
 
 - FDS (business requirements)
-- The approved Implementation Plan in `features/<feature>/plans/` (e.g. `plan-v<version>.md`), specifically the Testing section's Unit, API/Integration, and Backend Regression items.
+- The approved Implementation Plan in `features/<feature>/plans/` (e.g. `v<version>/plan.md`), specifically the Testing section's Unit, API/Integration, and Backend Regression items.
 
 To minimize token usage, do not read the entire codebase. Instead:
 
@@ -50,7 +50,7 @@ After all your tests are written:
 
 ## Defect Handling
 
-If a test reveals a genuine bug in production code, you may fix it, but only within backend files, and only if you have no other option. You MUST document the change in `features/<feature>/plans/plan-v<version>-defects-unit-api.md` (create it if absent) — one entry per fix, naming the file changed and the defect it corrected. Do not write to any other defects file; the UI/E2E agent maintains its own.
+If a test reveals a genuine bug in production code, you may fix it, but only within backend files, and only if you have no other option. You MUST document the change in `features/<feature>/plans/v<version>/defects-unit-api.md` (create it if absent) — one entry per fix, naming the file changed and the defect it corrected. Do not write to any other defects file; the UI/E2E agent maintains its own.
 
 If fixing a defect would require changing a file that the plan's Frontend or Integration sections also depend on, STOP and record the conflict in the defects file instead of proceeding. This must be resolved by a human before either test agent continues.
 

@@ -24,8 +24,8 @@ You will be provided:
 
 - Feature ID
 - `features/<feature-id>/fds.md`, `behavior.md`
-- `features/<feature-id>/plans/plan-v<version>.md` and `contract-v<version>.md`
-- Whatever triggered diagnosis: failing test output, the test agents' own defects files (`plan-v<version>-defects-unit-api.md`, `plan-v<version>-defects-ui-e2e.md`), or a Validation Mode failure report
+- `features/<feature-id>/plans/v<version>/plan.md` and `v<version>/contract.md`
+- Whatever triggered diagnosis: failing test output, the test agents' own defects files (`v<version>/defects-unit-api.md`, `v<version>/defects-ui-e2e.md`), or a Validation Mode failure report
 
 ---
 
@@ -37,9 +37,9 @@ Do not produce one overall verdict for the run. For EACH failure, classify into 
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Backend defect**            | Wrong calculation, bad validation, wrong error handling, incorrect persistence in `backend/src`                                                                                                | **Backend Dev Agent, Fix Mode** → re-run Integration → re-run both Test Agents                                                                                                |
 | **Frontend defect**           | Wrong state handling, bad conditional render, broken event handler, a11y bug in `frontend/src`                                                                                                 | **Frontend Dev Agent, Fix Mode** → re-run Integration → re-run both Test Agents                                                                                               |
-| **Integration-wiring defect** | Wrong endpoint called, request/response mapping bug, leftover mock, env/config — Frontend and Backend are each individually correct against `contract-v<version>.md`, but wired together wrong | **Integration Agent, re-run scoped to the wiring issue** → re-run both Test Agents                                                                                            |
+| **Integration-wiring defect** | Wrong endpoint called, request/response mapping bug, leftover mock, env/config — Frontend and Backend are each individually correct against `v<version>/contract.md`, but wired together wrong | **Integration Agent, re-run scoped to the wiring issue** → re-run both Test Agents                                                                                            |
 | **Bad test**                  | Wrong assertion, stale fixture, flaky test — no production code is at fault                                                                                                                    | **Stays in Testing** — the same test agent that wrote it rewrites it; no Dev Agent involved                                                                                   |
-| **Contract mismatch**         | `contract-v<version>.md` itself is missing a field/case the FDS actually requires — both sides implemented "correctly" against a flawed spec                                                   | **Developer Approval Gate** (human amends `contract-v<version>.md`) → **Frontend Dev Agent + Backend Dev Agent, both in Fix Mode**                                            |
+| **Contract mismatch**         | `v<version>/contract.md` itself is missing a field/case the FDS actually requires — both sides implemented "correctly" against a flawed spec                                                   | **Developer Approval Gate** (human amends `v<version>/contract.md`) → **Frontend Dev Agent + Backend Dev Agent, both in Fix Mode**                                            |
 | **FDS ambiguity**             | The spec itself is unclear or self-contradicting once real behavior is exercised                                                                                                               | **Plan Mode** (human classifies Clarification / Extension / Contradiction per `rules/workflow.md §4`; only Extension/Contradiction need a new FDS version and a full restart) |
 
 You do not decide Clarification vs. Extension vs. Contradiction yourself for an FDS-ambiguity finding — propose one, but a human confirms it before anything restarts.
@@ -67,7 +67,7 @@ Your report is meant to be acted on directly, without the developer having to lo
 - **Bad test** →
   `Re-run <test-build-mode-unit-api.md or test-build-mode-ui-e2e.md, whichever wrote it>, pointing at <test file path> and describing what's wrong with the assertion/fixture. No re-run of Integration needed.`
 - **Contract mismatch** →
-  `Amend contract-v<version>.md (directly for a small change, or via a scoped re-invocation of plan-synthesizer.md for a larger one), citing this finding as the reason. Re-review and re-approve it, then run .ai/prompts/build-mode.md (with Phase = Both, or Backend and Frontend individually) in Fix Mode before re-running Integration and both Test agents.`
+  `Amend v<version>/contract.md (directly for a small change, or via a scoped re-invocation of plan-synthesizer.md for a larger one), citing this finding as the reason. Re-review and re-approve it, then run .ai/prompts/build-mode.md (with Phase = Both, or Backend and Frontend individually) in Fix Mode before re-running Integration and both Test agents.`
 - **FDS ambiguity** →
   `STOP. A human must read fds.md and classify this as Clarification / Extension / Contradiction (rules/workflow.md §4) before anything restarts — Extension/Contradiction require a new FDS version and a restart from Plan Mode; Clarification only needs an in-place addendum.`
 - **Retry budget exceeded** (overrides the category's own template) →
@@ -79,7 +79,7 @@ Point to `defect-scenarios-playbook.md`'s matching scenario section for the full
 
 ## Output
 
-Produce `features/<feature-id>/plans/plan-v<version>-diagnosis.md`, listing every failure as its own entry:
+Produce `features/<feature-id>/plans/v<version>/diagnosis.md`, listing every failure as its own entry:
 
 - **Finding ID** (sequential, e.g. D1, D2)
 - **Category** (one of the six above)
@@ -97,4 +97,4 @@ Then a **Batching Summary**: group findings by routing target, with the group's 
 If you cannot confidently classify a failure without guessing at intent, mark it "Uncertain — escalate to human" rather than picking a category to keep the pipeline moving.
 
 Before finishing, append one line to `features/<feature-id>/plans/activity-log.md` (create it if absent):
-`- Diagnosis | <date/time> | output: plan-v<version>-diagnosis.md | findings: <n> | result: <done / stopped — reason>`
+`- Diagnosis | <date/time> | output: v<version>/diagnosis.md | findings: <n> | result: <done / stopped — reason>`

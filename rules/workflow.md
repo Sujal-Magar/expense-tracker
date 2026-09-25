@@ -11,7 +11,7 @@ FDS + Visual Design + Behavior Spec
         │
         ▼
   Plan Mode (read-only)
-        │ → outputs features/<id>/plans/plan-v<version>.md
+        │ → outputs features/<id>/plans/v<version>/plan.md
         ▼
   Developer Approval Gate      ← human reviews plan; all specs frozen here
         │
@@ -48,7 +48,7 @@ FDS + Visual Design + Behavior Spec
 
 - **Role**: Read-only specification analyzer and task planner (runs parallel fragments or single-agent).
 - **Input**: `fds.md`, `behavior.md`, `visuals/`, `rules/`
-- **Output**: `features/<id>/plans/plan-v<version>.md` and `features/<id>/plans/contract-v<version>.md`
+- **Output**: `features/<id>/plans/v<version>/plan.md` and `features/<id>/plans/v<version>/contract.md`
 - **Exit criteria**:
   - Implementation Plan covers all FDS requirements with spec-traced atomic tasks.
   - All known ambiguities at planning time are resolved and documented.
@@ -57,8 +57,8 @@ FDS + Visual Design + Behavior Spec
 ### Phase 2 — Developer Approval Gate
 
 - **Role**: Human review checkpoint after planning, before any code is written.
-- **Action**: Developer reviews `features/<id>/plans/plan-v<version>.md` and `contract-v<version>.md`, and either approves or requests changes.
-- **On approval**: All specs (`fds.md`, `behavior.md`, `visuals/`, `contract-v<version>.md`) are frozen. No changes permitted without creating a new version and restarting planning.
+- **Action**: Developer reviews `features/<id>/plans/v<version>/plan.md` and `v<version>/contract.md`, and either approves or requests changes.
+- **On approval**: All specs (`fds.md`, `behavior.md`, `visuals/`, `v<version>/contract.md`) are frozen. No changes permitted without creating a new version and restarting planning.
 - **Exit criteria**: Explicit human approval is recorded.
 
 ### Phase 3 — Frontend Build Mode (`.ai/prompts/build-mode.md` with `Phase = Frontend`)
@@ -195,13 +195,46 @@ Before choosing the workflow depth for a feature, classify it:
 features/<feature-id>/
 ├── fds.md                    # Feature Design Specification (YAML frontmatter + requirements)
 ├── behavior.md               # Interaction & Behavioral Specification
-├── plans/                    # Housing for versioned Implementation Plans
-│   ├── plan-v1.0.0.md        # Implementation Plan (generated in Plan Mode; frozen after approval)
-│   ├── contract-v1.0.0.md    # API Contract specification (frozen after approval)
-│   └── activity-log.md       # Audit trail for multi-agent execution
+├── plans/                    # One directory per plan version (see "Plan Artifact Layout" below)
+│   ├── activity-log.md       # Audit trail for multi-agent execution (shared across versions)
+│   └── v1.0.0/
+│       ├── plan.md           # Implementation Plan (generated in Plan Mode; frozen after approval)
+│       ├── contract.md       # API Contract specification (frozen after approval)
+│       ├── review.md         # Latest Plan Review report
+│       ├── reviews/          # Archived earlier reviews (r1.md, r2.md, ...)
+│       ├── fragments/        # frontend.md, backend.md (synthesis inputs)
+│       ├── directives.md     # Developer decisions for a revision run, if any
+│       ├── defects-unit-api.md / defects-ui-e2e.md   # Test-agent defect files, if any
+│       └── diagnosis.md      # Diagnosis Mode report, if any
 ├── validation-report.md      # Validation Report (generated after Code Validation 2)
 └── visuals/                  # Visual design specs (figma.md, screenshots)
 ```
+
+### Plan Artifact Layout
+
+All artifacts of one plan version live together in `features/<feature-id>/plans/v<version>/`. `<version>` is the `version` declared in `fds.md` frontmatter.
+
+| Artifact | Path (inside `plans/`) | Written by |
+| :--- | :--- | :--- |
+| Implementation plan | `v<version>/plan.md` | Plan Synthesizer / Plan Mode |
+| API contract | `v<version>/contract.md` | Plan Synthesizer |
+| Latest plan review | `v<version>/review.md` | Plan Review |
+| Earlier plan reviews | `v<version>/reviews/r<N>.md` | Plan Review (archiving step) |
+| Revision directives (developer decisions) | `v<version>/directives.md` | Developer, optionally drafted from the review's Suggested Next Step |
+| Frontend / backend fragments | `v<version>/fragments/frontend.md`, `v<version>/fragments/backend.md` | Plan Fragments |
+| Test defect files | `v<version>/defects-unit-api.md`, `v<version>/defects-ui-e2e.md` | Test Build Mode |
+| Diagnosis report | `v<version>/diagnosis.md` | Diagnosis Mode |
+| Audit trail | `activity-log.md` (one per feature, not per version) | every planning phase |
+
+Rules:
+
+1. **One directory per version.** A new FDS version creates a new sibling `v<new-version>/` directory. Older version directories are immutable history once a newer one exists.
+2. **Fixed filenames.** Versioned plan artifacts are never written directly under `plans/`, and the version is never repeated in a filename (no `plan-v1.0.0.md`). Agents create `v<version>/` and its subdirectories when absent.
+3. **Revisions stay in place.** When Plan Review returns `CHANGES REQUIRED`, the unfrozen `plan.md` and `contract.md` are revised in place in the same version directory (via the Plan Synthesizer or by editing the fragments and re-synthesizing). The version is not bumped; a new version directory is only for a new FDS version. Developer decisions that steer a revision are written to `v<version>/directives.md` in the repository (never a scratchpad), and the agents read it; starred decisions also go into the plan's Decision Log.
+4. **Review archiving.** `review.md` is always the latest review. Before writing a new review, Plan Review moves the existing `review.md` to `reviews/r<N>.md`, where `N` is 1 plus the number of files already in `reviews/`. Reviewers never read `reviews/`, so every review is independent of earlier ones.
+5. **Superseded fragments.** Once `plan.md` exists, fragments are history, not inputs to later phases. If `plan.md` or `contract.md` is edited afterward without regenerating from the fragments, both fragments get a banner as their first line after the title: `> **SUPERSEDED.** Stale after revision <N>. Kept as an audit trail only; do not use as synthesis input. The authoritative sources are `../plan.md` and `../contract.md`.`
+6. **Audit trail.** `activity-log.md` is append-only. Each entry's `output:` path is relative to `plans/` (for example `v1.0.0/plan.md`). Existing entries are never rewritten, even when the layout changes; a legend line is appended instead.
+7. **Freeze.** At the Developer Approval Gate, `v<version>/plan.md` and `v<version>/contract.md` are frozen (see §4 for amendments).
 
 ### FDS Frontmatter Requirements
 

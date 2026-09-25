@@ -19,14 +19,14 @@ Small, simple features do not require the full multi-agent pipeline — see [Whe
    • or Phase = Frontend / Backend individually
                 │
                 ▼
-2. Plan Synthesizer  ──────────► plan-v[[VERSION]].md
-                │                contract-v[[VERSION]].md (technology-agnostic API Contract spec)
+2. Plan Synthesizer  ──────────► v[[VERSION]]/plan.md
+                │                v[[VERSION]]/contract.md (technology-agnostic API Contract spec)
                 ▼
-3. Plan Review (independent agent)  ──► plan-v[[VERSION]]-review.md (reviews both files)
+3. Plan Review (independent agent)  ──► v[[VERSION]]/review.md (reviews both files)
                 │
                 ▼
 4. Developer Approval Gate  (Commit Plan + Contract)
-                │            freezes: FDS, behavior, visual specs, plan, contract-v[[VERSION]].md
+                │            freezes: FDS, behavior, visual specs, plan, v[[VERSION]]/contract.md
                 │
                 ▼
 5. Build Mode (.ai/prompts/build-mode.md)
@@ -244,8 +244,8 @@ Pass `Phase = Frontend` or `Phase = Backend` to run one focused agent without sp
 
 ### What Happens:
 
-- The Frontend fragment is written to `features/expense-crud/plans/plan-v[[VERSION]]-fragment-frontend.md`.
-- The Backend fragment is written to `features/expense-crud/plans/plan-v[[VERSION]]-fragment-backend.md`.
+- The Frontend fragment is written to `features/expense-crud/plans/v[[VERSION]]/fragments/frontend.md`.
+- The Backend fragment is written to `features/expense-crud/plans/v[[VERSION]]/fragments/backend.md`.
 - All fragment drafting is read-only with respect to source code and specifications.
 
 ---
@@ -266,8 +266,8 @@ Run in a new session after both fragments are generated:
 ### What Happens:
 
 - Agent reconciles both fragments and produces:
-  1. `features/expense-crud/plans/plan-v[[VERSION]].md` (the unified implementation plan)
-  2. `features/expense-crud/plans/contract-v[[VERSION]].md` (canonical, technology-agnostic API Contract specification: endpoints, request/response structures, and status codes in Markdown prose).
+  1. `features/expense-crud/plans/v[[VERSION]]/plan.md` (the unified implementation plan)
+  2. `features/expense-crud/plans/v[[VERSION]]/contract.md` (canonical, technology-agnostic API Contract specification: endpoints, request/response structures, and status codes in Markdown prose).
 
 ---
 
@@ -287,12 +287,50 @@ Run in a new session with an independent agent:
 ### What Happens:
 
 - Evaluates the synthesized plan and contract against `rules/architecture.md`, `rules/conventions.md`, and `rules/tech-stack.md`.
-- Produces `features/expense-crud/plans/plan-v[[VERSION]]-review.md` with a verdict (`PASS` or `CHANGES REQUIRED`).
+- Produces `features/expense-crud/plans/v[[VERSION]]/review.md` with a verdict (`PASS` or `CHANGES REQUIRED`).
 
 ### Action:
 
-- If `CHANGES REQUIRED`: Address findings via Plan Synthesizer or fragments, then re-review.
+- If `CHANGES REQUIRED`: Address findings via Plan Synthesizer or fragments, revising `plan.md` and `contract.md` **in place** in the same `v[[VERSION]]/` directory (do not bump the version), then re-review in a new session. The reviewer archives the previous `review.md` to `reviews/r<N>.md` automatically; `review.md` is always the latest.
+- If fragments were not regenerated for a revision, add the `SUPERSEDED` banner to both (see `rules/workflow.md` §6, Plan Artifact Layout).
 - If `PASS`: Proceed to Developer Approval Gate.
+
+### Revision Prompt Template
+
+The review's **Suggested Next Step** section proposes a ready-to-paste prompt. Check it, fill in any `DECISION NEEDED` slots, and run it. The reviewer only proposes; the developer decides.
+
+**Obvious fix** (the spec dictates one answer):
+
+```text
+System prompt : .ai/prompts/plan/plan-synthesizer.md
+User message  : Feature ID = expense-crud
+                Revision run. Plan Review (features/expense-crud/plans/v[[VERSION]]/review.md)
+                returned CHANGES REQUIRED.
+                Blocking finding B-1: <what is missing or wrong, citing the plan section
+                and the FDS section>. <exact change wanted>.
+                Revise plan.md and contract.md in place. Do not change other sections.
+```
+
+**Developer decision** (two or more valid options). Write the decision down first, then point the agent at it:
+
+```text
+# features/expense-crud/plans/v[[VERSION]]/directives.md
+## B-2 <short title>
+Options considered: <A>, <B>
+Decision: <the developer's choice>
+Apply to: <tasks, contract rows, tests>
+Record as a starred (★) decision in the plan's Decision Log: yes/no
+```
+
+```text
+System prompt : .ai/prompts/plan/plan-synthesizer.md
+User message  : Feature ID = expense-crud
+                Revision run. Apply every decision in
+                features/expense-crud/plans/v[[VERSION]]/directives.md.
+                Revise plan.md and contract.md in place.
+```
+
+If only one side is affected, patch that fragment first (`plan-fragments.md` with `Phase = Frontend` or `Backend`), then run the synthesizer. After the revision, run Plan Review again in a new session. If the review says the specs themselves are ambiguous, no revision prompt is produced: decide the requirement, edit `fds.md` or `behavior.md`, then re-draft the affected fragments.
 
 ---
 
@@ -300,9 +338,9 @@ Run in a new session with an independent agent:
 
 ### Action:
 
-1. Review `plan-v[[VERSION]].md`, `contract-v[[VERSION]].md`, and `plan-v[[VERSION]]-review.md`.
+1. Review `v[[VERSION]]/plan.md`, `v[[VERSION]]/contract.md`, and `v[[VERSION]]/review.md`.
 2. Confirm the Plan Review verdict is `PASS`.
-3. Confirm `contract-v[[VERSION]].md` is complete and technology-agnostic.
+3. Confirm `v[[VERSION]]/contract.md` is complete and technology-agnostic.
 
 ### Commit:
 
@@ -310,13 +348,13 @@ Run in a new session with an independent agent:
 git add -A && git commit -m "docs(expense-crud): add approved implementation plan and contract"
 ```
 
-All specifications (`fds.md`, `behavior.md`, `visuals/`, `plan-v[[VERSION]].md`, and `contract-v[[VERSION]].md`) are now **frozen**.
+All specifications (`fds.md`, `behavior.md`, `visuals/`, `v[[VERSION]]/plan.md`, and `v[[VERSION]]/contract.md`) are now **frozen**.
 
 ---
 
 ## Phase 5: Build Mode — Frontend & Backend Execution
 
-Because `contract-v[[VERSION]].md` is frozen at the Approval Gate, data consistency across layers is strictly defined. Frontend and Backend can be executed in parallel using `.ai/prompts/build-mode.md`.
+Because `v[[VERSION]]/contract.md` is frozen at the Approval Gate, data consistency across layers is strictly defined. Frontend and Backend can be executed in parallel using `.ai/prompts/build-mode.md`.
 
 ### Multi-Agent Parallel Execution: `Phase = Both`
 
@@ -334,10 +372,10 @@ When `Phase = Both` is provided, the prompt instructs the AI agent to employ a m
 
 #### Subagents Rolled Up:
 
-1. **Frontend Subagent**: Scoped strictly to `frontend/`. Implements UI components against mock data shaped to match `contract-v[[VERSION]].md`.
-2. **Backend Subagent**: Scoped strictly to `backend/` and `packages/contracts/`. Generates typed contracts from `contract-v[[VERSION]].md` and implements schemas, services, repositories, and routes in `backend/`.
+1. **Frontend Subagent**: Scoped strictly to `frontend/`. Implements UI components against mock data shaped to match `v[[VERSION]]/contract.md`.
+2. **Backend Subagent**: Scoped strictly to `backend/` and `packages/contracts/`. Generates typed contracts from `v[[VERSION]]/contract.md` and implements schemas, services, repositories, and routes in `backend/`.
 
-_Data consistency across both subagents is strictly governed by the frozen `contract-v[[VERSION]].md` spec._
+_Data consistency across both subagents is strictly governed by the frozen `v[[VERSION]]/contract.md` spec._
 
 ---
 
@@ -353,8 +391,8 @@ The developer makes the pragmatic decision prior to invoking the AI: if remainin
 
 ### What Happens:
 
-- **Frontend tasks**: Builds UI components against mock data shaped to match `contract-v[[VERSION]].md`. Writes strictly to `frontend/`.
-- **Backend tasks**: Generates/updates ts-rest contract definitions under `packages/contracts/` from `contract-v[[VERSION]].md`, then implements Drizzle schemas, repositories, services, and Express routes. Writes strictly to `backend/` and `packages/contracts/`.
+- **Frontend tasks**: Builds UI components against mock data shaped to match `v[[VERSION]]/contract.md`. Writes strictly to `frontend/`.
+- **Backend tasks**: Generates/updates ts-rest contract definitions under `packages/contracts/` from `v[[VERSION]]/contract.md`, then implements Drizzle schemas, repositories, services, and Express routes. Writes strictly to `backend/` and `packages/contracts/`.
 
 ### Commits:
 
@@ -492,7 +530,7 @@ If Phase 8 reports failures that cannot be resolved within the test agents' boun
   Feature ID = expense-crud
   ```
 
-Produces `features/expense-crud/plans/plan-v[[VERSION]]-diagnosis.md`, classifying each failure into one of six categories with concrete Suggested Next Steps:
+Produces `features/expense-crud/plans/v[[VERSION]]/diagnosis.md`, classifying each failure into one of six categories with concrete Suggested Next Steps:
 
 | Category                      | Routing & Action                                                                           |
 | :---------------------------- | :----------------------------------------------------------------------------------------- |
@@ -500,7 +538,7 @@ Produces `features/expense-crud/plans/plan-v[[VERSION]]-diagnosis.md`, classifyi
 | **Frontend defect**           | Run `.ai/prompts/build-mode.md` (`Phase = Frontend`, `Mode = Fix`)                         |
 | **Integration-wiring defect** | Re-run `.ai/prompts/build-mode.md` (`Phase = Integration`) scoped to the wiring issue      |
 | **Bad test**                  | Re-run responsible test prompt to rewrite the faulty test in place                         |
-| **Contract mismatch**         | Amend `contract-v[[VERSION]].md`, re-approve at Approval Gate, and re-run build sessions   |
+| **Contract mismatch**         | Amend `v[[VERSION]]/contract.md`, re-approve at Approval Gate, and re-run build sessions   |
 | **FDS ambiguity**             | Escalate to human per `rules/workflow.md §4` (Clarification vs Extension vs Contradiction) |
 
 ---
@@ -510,7 +548,7 @@ Produces `features/expense-crud/plans/plan-v[[VERSION]]-diagnosis.md`, classifyi
 Before running Fix Mode on any source code, check the diagnosis report's **Batching Summary**:
 
 - If a **Contract Mismatch** finding is present alongside Frontend or Backend defects:
-  1. Amend `contract-v[[VERSION]].md` to reflect the required field/schema changes.
+  1. Amend `v[[VERSION]]/contract.md` to reflect the required field/schema changes.
   2. Re-approve and freeze the contract at the Developer Approval Gate.
      _Never fix code against a contract that is about to change; resolving the contract first prevents wasted rework._
 
@@ -652,7 +690,7 @@ Use the complexity scoring rubric in `rules/workflow.md §5` to select the workf
 | File                                           | Role                                                                                                   |
 | :--------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
 | `.ai/prompts/plan/plan-fragments.md`           | Unified fragment prompt supporting `Phase: "Frontend"` \| `"Backend"` \| `"Both"` (parallel subagents) |
-| `.ai/prompts/plan/plan-synthesizer.md`         | Synthesizes fragments into `plan-v<version>.md` and `contract-v<version>.md`                           |
+| `.ai/prompts/plan/plan-synthesizer.md`         | Synthesizes fragments into `v<version>/plan.md` and `v<version>/contract.md`                           |
 | `.ai/prompts/plan/plan-review.md`              | Independent pre-approval review of plan and API contract                                               |
 | `.ai/prompts/plan-mode.md`                     | Baseline single-agent plan mode for simple path / low-complexity features                              |
 | `.ai/prompts/build-mode.md`                    | Unified build prompt supporting `Phase: "Frontend"` \| `"Backend"` \| `"Both"` \| `"Integration"`      |

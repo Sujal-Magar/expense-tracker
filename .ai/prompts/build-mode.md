@@ -5,7 +5,7 @@ The user will provide:
 - Feature ID
 - Phase: `"Frontend"` | `"Backend"` | `"Both"` | `"Integration"`
 - Mode: `"Build"` (default) | `"Fix"` (optional)
-- Findings: (required when `Mode = "Fix"`, e.g. `D1, D3` from `plan-v<version>-diagnosis.md`)
+- Findings: (required when `Mode = "Fix"`, e.g. `D1, D3` from `v<version>/diagnosis.md`)
 
 ---
 
@@ -15,9 +15,9 @@ Work strictly within the current project repository. Never inspect, reference, c
 
 Always follow `rules/tech-stack.md`, `rules/architecture.md`, and `rules/conventions.md`.
 
-Read the latest plan (`plan-v<version>.md`) in `features/<feature-id>/plans/` before implementation. If older plans exist, read them ONLY when needed to understand what is already implemented.
+Read the latest plan (`v<version>/plan.md`) in `features/<feature-id>/plans/` before implementation. If older plans exist, read them ONLY when needed to understand what is already implemented.
 
-The latest plan is the sole authority for current implementation scope. Data consistency between frontend and backend is strictly governed by the frozen contract file (`features/<feature-id>/plans/contract-v<version>.md`) produced during the planning phase.
+The latest plan is the sole authority for current implementation scope. Data consistency between frontend and backend is strictly governed by the frozen contract file (`features/<feature-id>/plans/v<version>/contract.md`) produced during the planning phase.
 
 FDS defines business behavior; `behavior.md` and visual assets define UI behavior/visual requirements when applicable.
 
@@ -29,9 +29,9 @@ The developer decides which Phase to execute based on available session tokens a
 
 - **`"Both"` (Parallel Multi-Agent / Subagent Execution)**:
   Triggers a full feature build across both layers concurrently. The AI agent MUST employ a multi-agent pattern and roll up two parallel subagents:
-  1. **Frontend Subagent**: Scoped strictly to `frontend/`. Implements UI components against mock data shaped to match `contract-v<version>.md`. Must not inspect or touch backend files.
-  2. **Backend Subagent**: Scoped strictly to `backend/` and `packages/contracts/`. Generates typed contract definitions under `packages/contracts/` from `contract-v<version>.md`, and implements schemas, repositories, services, and routes in `backend/`. Must not touch frontend files.
-     Both subagents execute in parallel. Data consistency between subagents is strictly governed by the frozen `contract-v<version>.md` specification without deviation.
+  1. **Frontend Subagent**: Scoped strictly to `frontend/`. Implements UI components against mock data shaped to match `v<version>/contract.md`. Must not inspect or touch backend files.
+  2. **Backend Subagent**: Scoped strictly to `backend/` and `packages/contracts/`. Generates typed contract definitions under `packages/contracts/` from `v<version>/contract.md`, and implements schemas, repositories, services, and routes in `backend/`. Must not touch frontend files.
+     Both subagents execute in parallel. Data consistency between subagents is strictly governed by the frozen `v<version>/contract.md` specification without deviation.
 
 - **`"Frontend"` (Pragmatic Individual Run)**:
   The developer selects this when remaining session token budget is low or when focusing exclusively on UI delivery. Execute directly as a single focused Frontend agent (without spawning subagents). Execute only Frontend tasks, modifying only files under `frontend/`.
@@ -50,9 +50,9 @@ After all phase items, run the full project linter, type-checker, and tests. Fix
 
 ## Phase-Specific Constraints
 
-**Frontend**: Reproduce the visual design faithfully matching visual assets in `features/<feature-id>/visuals/` and `behavior.md`. Use mock data matching the FDS data structures and frozen contract (`contract-v<version>.md`). Do not modify backend or contract package files.
+**Frontend**: Reproduce the visual design faithfully matching visual assets in `features/<feature-id>/visuals/` and `behavior.md`. Use mock data matching the FDS data structures and frozen contract (`v<version>/contract.md`). Do not modify backend or contract package files.
 
-**Backend**: Implement API contracts (`packages/contracts`), database models, repositories, services, and API controllers faithfully to the FDS and frozen contract (`contract-v<version>.md`). Do not modify frontend files.
+**Backend**: Implement API contracts (`packages/contracts`), database models, repositories, services, and API controllers faithfully to the FDS and frozen contract (`v<version>/contract.md`). Do not modify frontend files.
 
 **Integration**: Replace mocks with real API client calls using `packages/contracts`. Connect mutations, queries, and form submissions. Remove temporary mock files. Do not alter business logic.
 
@@ -60,7 +60,7 @@ After all phase items, run the full project linter, type-checker, and tests. Fix
 
 ## Strict Prohibitions
 
-Do NOT modify `contract-v<version>.md` — it is frozen. If it appears incomplete or ambiguous, STOP and report the discrepancy.
+Do NOT modify `v<version>/contract.md` — it is frozen. If it appears incomplete or ambiguous, STOP and report the discrepancy.
 
 Do NOT modify the Implementation Plan, FDS, `behavior.md`, visual assets, or files outside the approved plan scope.
 
@@ -79,12 +79,12 @@ You can also be invoked in Fix Mode instead of full Build Mode after Diagnosis M
 In Fix Mode, the user message specifies:
 
 - `Mode = Fix`
-- `Findings = <finding IDs, e.g. D1, D3>` (from `plan-v<version>-diagnosis.md`)
+- `Findings = <finding IDs, e.g. D1, D3>` (from `v<version>/diagnosis.md`)
 - `Phase = "Both"` | `"Frontend"` | `"Backend"`
 
 ### Rules for Fix Mode:
 
-- Read ONLY the named findings in `plan-v<version>-diagnosis.md` and the plan/contract sections they reference. Do NOT re-execute the plan's entire task list.
+- Read ONLY the named findings in `v<version>/diagnosis.md` and the plan/contract sections they reference. Do NOT re-execute the plan's entire task list.
 - Fix ONLY what each named finding describes. Do not refactor, rewrite, or expand scope outside the finding.
 - If `Phase = "Both"`, employ the multi-agent pattern and roll up Frontend and Backend subagents to fix their respective findings in parallel.
 - If `Phase = "Frontend"` or `"Backend"`, execute directly as a single focused agent fixing only the findings for that layer without spawning subagents.

@@ -73,7 +73,7 @@ Do NOT draft Backend, Integration, or a formal API Contract section. Do NOT inve
 
 ### Output
 
-`features/<feature-id>/plans/plan-v<version>-fragment-frontend.md`
+`features/<feature-id>/plans/v<version>/fragments/frontend.md`
 
 ---
 
@@ -98,7 +98,7 @@ Do NOT draft Frontend, Integration, or a formal API Contract section. Do NOT inv
 
 ### Output
 
-`features/<feature-id>/plans/plan-v<version>-fragment-backend.md`
+`features/<feature-id>/plans/v<version>/fragments/backend.md`
 
 ---
 
@@ -112,9 +112,11 @@ If the user message indicates this is a spec update (Scenario B) or a cross-feat
 
 ## Output Rules
 
-Each fragment is written to the path given in its section above, with `<version>` matching the version in `fds.md` frontmatter. Do NOT write to `plan-v<version>.md` — that file is the Synthesizer's output only.
+If `features/<feature-id>/plans/v<version>/directives.md` exists (a revision run), apply only the decisions that concern your side.
+
+Each fragment is written to the path given in its section above (create `v<version>/fragments/` if absent), with `<version>` matching the version in `fds.md` frontmatter. Do NOT write to `v<version>/plan.md` — that file is the Synthesizer's output only.
 
 Before finishing, append one line per fragment drafted to `features/<feature-id>/plans/activity-log.md` (create it if absent). In `Phase = Both`, only the orchestrating agent appends, once both subagents have returned:
 
-- `- Plan: Frontend Fragment | <date/time> | output: plan-v<version>-fragment-frontend.md | result: <done / stopped — reason>`
-- `- Plan: Backend Fragment | <date/time> | output: plan-v<version>-fragment-backend.md | result: <done / stopped — reason>`
+- `- Plan: Frontend Fragment | <date/time> | output: v<version>/fragments/frontend.md | result: <done / stopped — reason>`
+- `- Plan: Backend Fragment | <date/time> | output: v<version>/fragments/backend.md | result: <done / stopped — reason>`
