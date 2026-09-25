@@ -23,7 +23,7 @@ Do NOT write backend unit tests or API/integration tests — those belong exclus
 Read `features/<feature>/index.json` to locate:
 
 - Behavioral Spec (`behavior.md`) and Figma reference (`visuals/figma.md`)
-- The approved Implementation Plan in `features/<feature>/plans/` (e.g. `plan-v<version>.md`), specifically the Testing section's Component, E2E, and UI Regression items.
+- The approved Implementation Plan in `features/<feature>/plans/` (e.g. `v<version>/plan.md`), specifically the Testing section's Component, E2E, and UI Regression items.
 
 To minimize token usage, do not read the entire codebase. Instead:
 
@@ -50,7 +50,7 @@ After all your tests are written:
 
 ## Defect Handling
 
-If a test reveals a genuine bug in production code, you may fix it, but only within frontend files, and only if you have no other option. You MUST document the change in `features/<feature>/plans/plan-v<version>-defects-ui-e2e.md` (create it if absent) — one entry per fix, naming the file changed and the defect it corrected. Do not write to any other defects file; the Unit/API agent maintains its own.
+If a test reveals a genuine bug in production code, you may fix it, but only within frontend files, and only if you have no other option. You MUST document the change in `features/<feature>/plans/v<version>/defects-ui-e2e.md` (create it if absent) — one entry per fix, naming the file changed and the defect it corrected. Do not write to any other defects file; the Unit/API agent maintains its own.
 
 If fixing a defect would require changing a file that the plan's Backend or Integration sections also depend on, STOP and record the conflict in the defects file instead of proceeding. This must be resolved by a human before either test agent continues.
 

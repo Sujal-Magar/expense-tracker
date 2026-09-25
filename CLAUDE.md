@@ -16,7 +16,7 @@ Detailed operations are documented in [WORKFLOW_PLAYBOOK.md](file:///home/sujal/
 | **1 — Plan Fragments (Parallel)**   | Before any code is written       | `.ai/prompts/plan/plan-fragments.md` (`Phase = Both`, or individual `Frontend` / `Backend`)                        |
 | **2 — Plan Synthesizer**            | After both fragments exist       | `.ai/prompts/plan/plan-synthesizer.md`                                                                             |
 | **3 — Plan Review**                 | Before developer approval        | `.ai/prompts/plan/plan-review.md`                                                                                  |
-| **4 — Developer Approval Gate**     | After plan review passes         | Human reviews & freezes `plan-v<version>.md` and `contract-v<version>.md`                                          |
+| **4 — Developer Approval Gate**     | After plan review passes         | Human reviews & freezes `v<version>/plan.md` and `v<version>/contract.md`                                          |
 | **5 — Build Mode (Parallel)**       | After approval gate              | `.ai/prompts/build-mode.md` (`Phase = Both`, or individual `Frontend` / `Backend`)                                 |
 | **6 — UI Review & Freeze**          | After frontend build completes   | Human confirms UI against visual specs; freezes UI                                                                 |
 | **7 — Integration Build Mode**      | After both build sessions commit | `.ai/prompts/build-mode.md` with `Phase = Integration`                                                             |
@@ -136,11 +136,17 @@ features/
 └── <feature-id>/
     ├── fds.md                   # Feature Design Specification (source of truth)
     ├── behavior.md              # Interaction & behavioral spec
-    ├── plans/                   # Housing for versioned plans & contracts
-    │   ├── plan-v1.0.0.md       # Implementation plan (frozen after approval)
-    │   ├── contract-v1.0.0.md   # API contract specification (frozen after approval)
-    │   ├── plan-v1.0.0-review.md# Plan review report
-    │   └── activity-log.md      # Multi-agent audit trail
+    ├── plans/                   # One directory per plan version (layout rules: rules/workflow.md §6)
+    │   ├── activity-log.md      # Multi-agent audit trail (shared across versions, append-only)
+    │   └── v1.0.0/              # Every artifact for plan version 1.0.0
+    │       ├── plan.md          # Implementation plan (frozen after approval)
+    │       ├── contract.md      # API contract specification (frozen after approval)
+    │       ├── review.md        # Latest plan review report
+    │       ├── reviews/         # Archived earlier reviews: r1.md, r2.md, ...
+    │       ├── fragments/       # frontend.md, backend.md (synthesis inputs; superseded once plan.md exists)
+    │       ├── directives.md    # Developer decisions for a revision run, if any
+    │       ├── defects-*.md     # Written by test agents, if any
+    │       └── diagnosis.md     # Generated in Diagnosis Mode, if needed
     ├── validation-report.md     # Generated in Validation Mode
     └── visuals/                 # Visual design reference and screenshots
 ```
@@ -159,9 +165,10 @@ features/
 
 ## Key Constraints
 
-- **Never modify** `fds.md`, `behavior.md`, `visuals/`, approved plans in `plans/`, `contract-v<version>.md`, or `rules/` during Build or Test modes.
+- **Never modify** `fds.md`, `behavior.md`, `visuals/`, approved plans in `plans/`, `v<version>/contract.md`, or `rules/` during Build or Test modes.
 - **Bounded retry**: max 3 attempts per task, max 5 attempts for full suite fixes. Beyond 3 attempts, stop and escalate.
 - **Strict path boundaries in parallel phases**: Frontend Build touches only `frontend/`; Backend Build touches only `backend/` and `packages/contracts/`.
+- **Plan artifact layout**: every plan artifact for a version lives under `features/<feature-id>/plans/v<version>/` with the fixed filenames in `rules/workflow.md` §6. Never create `plan-v<version>-*.md` or `contract-v<version>.md` files directly under `plans/`. Revising an unfrozen plan happens in place in the same version directory; a new directory is created only for a new FDS version.
 - **No new libraries** without explicit approval.
 - **No production code changes** in Test Build Mode unless a defect is formally documented or diagnosed.
 - **All API contracts** originate in `packages/contracts` via ts-rest — never defined inline or duplicated between applications.
